@@ -18,6 +18,7 @@ import Toybox.WatchUi;
 class BoardLink extends BluetoothLowEnergy.BleDelegate {
     enum {
         STATE_OFF,
+        STATE_STARTING,     // registering BLE profiles
         STATE_SCANNING,
         STATE_WAITING,      // board not found, next scan scheduled
         STATE_CONNECTING,
@@ -42,6 +43,8 @@ class BoardLink extends BluetoothLowEnergy.BleDelegate {
 
     private var _device as BluetoothLowEnergy.Device?;
     private var _nextProfile as Number = 0;
+    private var _registering as Boolean = false;
+    private var _profilesDone as Boolean = false;   // profiles stay registered for the app's lifetime
     private var _nameFilter as String = "exway";
     private var _timer as Timer.Timer?;
 
@@ -53,13 +56,29 @@ class BoardLink extends BluetoothLowEnergy.BleDelegate {
     }
 
     function start() as Void {
-        var f = Application.Properties.getValue("boardNameFilter");
-        if (f instanceof String && f.length() > 0) {
-            _nameFilter = f.toLower();
+        if (state != STATE_OFF) {
+            return;
         }
+        _nameFilter = readNameFilter();
+        state = STATE_STARTING;
         BluetoothLowEnergy.setDelegate(self);
-        _nextProfile = 0;
-        registerNextProfile();
+        if (_profilesDone) {
+            startScan();
+        } else if (!_registering) {
+            _registering = true;
+            _nextProfile = 0;
+            registerNextProfile();
+        }
+    }
+
+    // Returns true when the name filter in settings differs from the one in use.
+    function nameFilterChanged() as Boolean {
+        return !readNameFilter().equals(_nameFilter);
+    }
+
+    private function readNameFilter() as String {
+        var f = Application.Properties.getValue("boardNameFilter");
+        return (f instanceof String && f.length() > 0) ? f.toLower() : "exway";
     }
 
     function stop() as Void {
@@ -71,12 +90,24 @@ class BoardLink extends BluetoothLowEnergy.BleDelegate {
             _device = null;
         }
         state = STATE_OFF;
+        clearData();
+    }
+
+    // Forget values from the board so stale readings are never shown.
+    private function clearData() as Void {
+        battery = null;
+        voltage = null;
+        rssi = null;
     }
 
     // ---- profile registration (sequential) ----
     private function registerNextProfile() as Void {
         if (_nextProfile >= CANDIDATES.size()) {
-            startScan();
+            _registering = false;
+            _profilesDone = true;
+            if (state == STATE_STARTING) {   // not stopped meanwhile
+                startScan();
+            }
             return;
         }
         var c = CANDIDATES[_nextProfile];
@@ -165,6 +196,7 @@ class BoardLink extends BluetoothLowEnergy.BleDelegate {
         } else {
             // The paired device reconnects automatically when back in range.
             state = STATE_CONNECTING;
+            clearData();
         }
         WatchUi.requestUpdate();
     }

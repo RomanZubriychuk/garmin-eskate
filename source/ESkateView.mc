@@ -60,12 +60,14 @@ class ESkateView extends WatchUi.View {
 
     // Pages are rebuilt from settings every time, so changes apply immediately.
     private function pages() as Array<Number> {
-        var p = [PAGE_DATA1] as Array<Number>;
+        var p = [] as Array<Number>;
+        if (Config.screenUsed(0)) { p.add(PAGE_DATA1); }
         if (Config.screenUsed(1)) { p.add(PAGE_DATA2); }
         if (Config.flag("boardEnabled")) {
             if (Config.flag("showBoardPage")) { p.add(PAGE_BOARD); }
             if (Config.flag("showDiagnostics")) { p.add(PAGE_DIAG); }
         }
+        if (p.size() == 0) { p.add(PAGE_DATA1); }
         return p;
     }
 
@@ -238,7 +240,7 @@ class ESkateView extends WatchUi.View {
             status = _s[:connected]; color = Graphics.COLOR_GREEN;
         } else if (b.state == BoardLink.STATE_CONNECTING) {
             status = _s[:connecting]; color = Graphics.COLOR_YELLOW;
-        } else if (b.state == BoardLink.STATE_SCANNING) {
+        } else if (b.state == BoardLink.STATE_SCANNING || b.state == BoardLink.STATE_STARTING) {
             status = _s[:scan]; color = Graphics.COLOR_YELLOW;
         } else if (b.state == BoardLink.STATE_WAITING) {
             status = _s[:notfound]; color = Graphics.COLOR_ORANGE;

@@ -54,7 +54,7 @@ module Fields {
             var hr = ride.heartRate();
             return [hr != null ? hr.format("%d") : "--", "bpm"];
         } else if (id == SPEED) {
-            return [Units.speed(ride.speed()).format("%d"), speedUnit];
+            return [Units.speed(ride.speed()).toNumber().format("%d"), speedUnit];
         } else if (id == MAX_SPEED) {
             return [Units.speed(ride.maxSpeed()).format("%.1f"), speedUnit];
         } else if (id == AVG_SPEED) {
@@ -66,7 +66,7 @@ module Fields {
             var v = board.voltage;
             return [v != null ? v.format("%.1f") : "--", "V"];
         } else if (id == WATCH_BATTERY) {
-            return [System.getSystemStats().battery.format("%d"), "%"];
+            return [System.getSystemStats().battery.toNumber().format("%d"), "%"];
         } else if (id == CLOCK) {
             var c = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
             return [c.hour.format("%02d") + ":" + c.min.format("%02d"), ""];
@@ -75,7 +75,7 @@ module Fields {
             return [cal != null ? cal.format("%d") : "--", "kcal"];
         } else if (id == ASCENT) {
             var a = ride.ascent();
-            return [a != null ? Units.elevation(a).format("%d") : "--", metric ? "m" : "ft"];
+            return [a != null ? Units.elevation(a).format("%d") : "--", Units.isMetricElevation() ? "m" : "ft"];
         }
         return ["", ""];
     }

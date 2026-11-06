@@ -9,8 +9,7 @@ module FieldsMenu {
         var menu = new WatchUi.Menu2({ :title => Rez.Strings.MenuDataFields });
         for (var s = 0; s < Config.SCREEN_COUNT; s++) {
             for (var slot = 0; slot < Config.SLOT_COUNT; slot++) {
-                var title = "Screen " + (s + 1).format("%d") + ": " + Config.SLOT_NAMES[slot];
-                menu.addItem(new WatchUi.MenuItem(title, Fields.name(Config.field(s, slot)),
+                menu.addItem(new WatchUi.MenuItem(slotTitle(s, slot), Fields.name(Config.field(s, slot)),
                                                   s * Config.SLOT_COUNT + slot, {}));
             }
         }
@@ -21,6 +20,14 @@ module FieldsMenu {
         menu.addItem(new WatchUi.ToggleMenuItem(Rez.Strings.MenuDiagPage, null, :showDiagnostics,
                                                 Config.flag("showDiagnostics"), {}));
         WatchUi.pushView(menu, new FieldsMenuDelegate(), WatchUi.SLIDE_UP);
+    }
+
+    function slotTitle(screen as Number, slot as Number) as String {
+        var ids = [
+            Rez.Strings.SetS1Main, Rez.Strings.SetS1Left, Rez.Strings.SetS1Right, Rez.Strings.SetS1Bottom,
+            Rez.Strings.SetS2Main, Rez.Strings.SetS2Left, Rez.Strings.SetS2Right, Rez.Strings.SetS2Bottom
+        ];
+        return WatchUi.loadResource(ids[screen * Config.SLOT_COUNT + slot] as ResourceId) as String;
     }
 }
 
