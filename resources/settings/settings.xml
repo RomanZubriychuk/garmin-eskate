@@ -1,0 +1,11 @@
+<settings>
+    <setting propertyKey="@Properties.speedAlertKmh" title="@Strings.SettingSpeedAlert">
+        <settingConfig type="numeric" min="0" max="80"/>
+    </setting>
+    <setting propertyKey="@Properties.boardEnabled" title="@Strings.SettingBoardEnabled">
+        <settingConfig type="boolean"/>
+    </setting>
+    <setting propertyKey="@Properties.boardNameFilter" title="@Strings.SettingBoardName">
+        <settingConfig type="alphaNumeric"/>
+    </setting>
+</settings>

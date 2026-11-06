@@ -1,0 +1,5 @@
+<properties>
+    <property id="speedAlertKmh" type="number">0</property>
+    <property id="boardEnabled" type="boolean">true</property>
+    <property id="boardNameFilter" type="string">Exway</property>
+</properties>

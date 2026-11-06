@@ -1,0 +1,27 @@
+<strings>
+    <string id="AppName">E-Skate</string>
+    <string id="Ready">READY</string>
+    <string id="Recording">REC</string>
+    <string id="Paused">PAUSED</string>
+    <string id="Distance">Distance</string>
+    <string id="Time">Time</string>
+    <string id="MaxSpeed">Max</string>
+    <string id="AvgSpeed">Avg</string>
+    <string id="Board">Board</string>
+    <string id="Battery">Battery</string>
+    <string id="BoardOff">Board link off</string>
+    <string id="BoardScanning">Searching board...</string>
+    <string id="BoardConnecting">Connecting...</string>
+    <string id="BoardConnected">Connected</string>
+    <string id="NoData">no data yet</string>
+    <string id="Packets">Packets</string>
+    <string id="GpsWait">Waiting for GPS</string>
+    <string id="MenuTitle">Ride</string>
+    <string id="Resume">Resume</string>
+    <string id="Save">Save</string>
+    <string id="Discard">Discard</string>
+    <string id="Saved">Saved</string>
+    <string id="SettingSpeedAlert">Speed alert, km/h (0 = off)</string>
+    <string id="SettingBoardEnabled">Connect to board via Bluetooth</string>
+    <string id="SettingBoardName">Board Bluetooth name contains</string>
+</strings>
