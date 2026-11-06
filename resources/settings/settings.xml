@@ -8,4 +8,146 @@
     <setting propertyKey="@Properties.boardNameFilter" title="@Strings.SettingBoardName">
         <settingConfig type="alphaNumeric"/>
     </setting>
+    <setting propertyKey="@Properties.s1Main" title="@Strings.SetS1Main">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FieldNone</listEntry>
+            <listEntry value="1">@Strings.FieldDistance</listEntry>
+            <listEntry value="2">@Strings.FieldRideTime</listEntry>
+            <listEntry value="3">@Strings.FieldHeartRate</listEntry>
+            <listEntry value="4">@Strings.FieldSpeed</listEntry>
+            <listEntry value="5">@Strings.FieldMaxSpeed</listEntry>
+            <listEntry value="6">@Strings.FieldAvgSpeed</listEntry>
+            <listEntry value="7">@Strings.FieldBoardBattery</listEntry>
+            <listEntry value="8">@Strings.FieldBoardVoltage</listEntry>
+            <listEntry value="9">@Strings.FieldWatchBattery</listEntry>
+            <listEntry value="10">@Strings.FieldClock</listEntry>
+            <listEntry value="11">@Strings.FieldCalories</listEntry>
+            <listEntry value="12">@Strings.FieldAscent</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.s1Left" title="@Strings.SetS1Left">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FieldNone</listEntry>
+            <listEntry value="1">@Strings.FieldDistance</listEntry>
+            <listEntry value="2">@Strings.FieldRideTime</listEntry>
+            <listEntry value="3">@Strings.FieldHeartRate</listEntry>
+            <listEntry value="4">@Strings.FieldSpeed</listEntry>
+            <listEntry value="5">@Strings.FieldMaxSpeed</listEntry>
+            <listEntry value="6">@Strings.FieldAvgSpeed</listEntry>
+            <listEntry value="7">@Strings.FieldBoardBattery</listEntry>
+            <listEntry value="8">@Strings.FieldBoardVoltage</listEntry>
+            <listEntry value="9">@Strings.FieldWatchBattery</listEntry>
+            <listEntry value="10">@Strings.FieldClock</listEntry>
+            <listEntry value="11">@Strings.FieldCalories</listEntry>
+            <listEntry value="12">@Strings.FieldAscent</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.s1Right" title="@Strings.SetS1Right">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FieldNone</listEntry>
+            <listEntry value="1">@Strings.FieldDistance</listEntry>
+            <listEntry value="2">@Strings.FieldRideTime</listEntry>
+            <listEntry value="3">@Strings.FieldHeartRate</listEntry>
+            <listEntry value="4">@Strings.FieldSpeed</listEntry>
+            <listEntry value="5">@Strings.FieldMaxSpeed</listEntry>
+            <listEntry value="6">@Strings.FieldAvgSpeed</listEntry>
+            <listEntry value="7">@Strings.FieldBoardBattery</listEntry>
+            <listEntry value="8">@Strings.FieldBoardVoltage</listEntry>
+            <listEntry value="9">@Strings.FieldWatchBattery</listEntry>
+            <listEntry value="10">@Strings.FieldClock</listEntry>
+            <listEntry value="11">@Strings.FieldCalories</listEntry>
+            <listEntry value="12">@Strings.FieldAscent</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.s1Bottom" title="@Strings.SetS1Bottom">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FieldNone</listEntry>
+            <listEntry value="1">@Strings.FieldDistance</listEntry>
+            <listEntry value="2">@Strings.FieldRideTime</listEntry>
+            <listEntry value="3">@Strings.FieldHeartRate</listEntry>
+            <listEntry value="4">@Strings.FieldSpeed</listEntry>
+            <listEntry value="5">@Strings.FieldMaxSpeed</listEntry>
+            <listEntry value="6">@Strings.FieldAvgSpeed</listEntry>
+            <listEntry value="7">@Strings.FieldBoardBattery</listEntry>
+            <listEntry value="8">@Strings.FieldBoardVoltage</listEntry>
+            <listEntry value="9">@Strings.FieldWatchBattery</listEntry>
+            <listEntry value="10">@Strings.FieldClock</listEntry>
+            <listEntry value="11">@Strings.FieldCalories</listEntry>
+            <listEntry value="12">@Strings.FieldAscent</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.s2Main" title="@Strings.SetS2Main">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FieldNone</listEntry>
+            <listEntry value="1">@Strings.FieldDistance</listEntry>
+            <listEntry value="2">@Strings.FieldRideTime</listEntry>
+            <listEntry value="3">@Strings.FieldHeartRate</listEntry>
+            <listEntry value="4">@Strings.FieldSpeed</listEntry>
+            <listEntry value="5">@Strings.FieldMaxSpeed</listEntry>
+            <listEntry value="6">@Strings.FieldAvgSpeed</listEntry>
+            <listEntry value="7">@Strings.FieldBoardBattery</listEntry>
+            <listEntry value="8">@Strings.FieldBoardVoltage</listEntry>
+            <listEntry value="9">@Strings.FieldWatchBattery</listEntry>
+            <listEntry value="10">@Strings.FieldClock</listEntry>
+            <listEntry value="11">@Strings.FieldCalories</listEntry>
+            <listEntry value="12">@Strings.FieldAscent</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.s2Left" title="@Strings.SetS2Left">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FieldNone</listEntry>
+            <listEntry value="1">@Strings.FieldDistance</listEntry>
+            <listEntry value="2">@Strings.FieldRideTime</listEntry>
+            <listEntry value="3">@Strings.FieldHeartRate</listEntry>
+            <listEntry value="4">@Strings.FieldSpeed</listEntry>
+            <listEntry value="5">@Strings.FieldMaxSpeed</listEntry>
+            <listEntry value="6">@Strings.FieldAvgSpeed</listEntry>
+            <listEntry value="7">@Strings.FieldBoardBattery</listEntry>
+            <listEntry value="8">@Strings.FieldBoardVoltage</listEntry>
+            <listEntry value="9">@Strings.FieldWatchBattery</listEntry>
+            <listEntry value="10">@Strings.FieldClock</listEntry>
+            <listEntry value="11">@Strings.FieldCalories</listEntry>
+            <listEntry value="12">@Strings.FieldAscent</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.s2Right" title="@Strings.SetS2Right">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FieldNone</listEntry>
+            <listEntry value="1">@Strings.FieldDistance</listEntry>
+            <listEntry value="2">@Strings.FieldRideTime</listEntry>
+            <listEntry value="3">@Strings.FieldHeartRate</listEntry>
+            <listEntry value="4">@Strings.FieldSpeed</listEntry>
+            <listEntry value="5">@Strings.FieldMaxSpeed</listEntry>
+            <listEntry value="6">@Strings.FieldAvgSpeed</listEntry>
+            <listEntry value="7">@Strings.FieldBoardBattery</listEntry>
+            <listEntry value="8">@Strings.FieldBoardVoltage</listEntry>
+            <listEntry value="9">@Strings.FieldWatchBattery</listEntry>
+            <listEntry value="10">@Strings.FieldClock</listEntry>
+            <listEntry value="11">@Strings.FieldCalories</listEntry>
+            <listEntry value="12">@Strings.FieldAscent</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.s2Bottom" title="@Strings.SetS2Bottom">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.FieldNone</listEntry>
+            <listEntry value="1">@Strings.FieldDistance</listEntry>
+            <listEntry value="2">@Strings.FieldRideTime</listEntry>
+            <listEntry value="3">@Strings.FieldHeartRate</listEntry>
+            <listEntry value="4">@Strings.FieldSpeed</listEntry>
+            <listEntry value="5">@Strings.FieldMaxSpeed</listEntry>
+            <listEntry value="6">@Strings.FieldAvgSpeed</listEntry>
+            <listEntry value="7">@Strings.FieldBoardBattery</listEntry>
+            <listEntry value="8">@Strings.FieldBoardVoltage</listEntry>
+            <listEntry value="9">@Strings.FieldWatchBattery</listEntry>
+            <listEntry value="10">@Strings.FieldClock</listEntry>
+            <listEntry value="11">@Strings.FieldCalories</listEntry>
+            <listEntry value="12">@Strings.FieldAscent</listEntry>
+        </settingConfig>
+    </setting>
+    <setting propertyKey="@Properties.showBoardPage" title="@Strings.MenuBoardPage">
+        <settingConfig type="boolean"/>
+    </setting>
+    <setting propertyKey="@Properties.showDiagnostics" title="@Strings.MenuDiagPage">
+        <settingConfig type="boolean"/>
+    </setting>
 </settings>

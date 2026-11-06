@@ -6,11 +6,17 @@ import Toybox.Time.Gregorian;
 import Toybox.Timer;
 import Toybox.WatchUi;
 
-// Page 0: ride (speed, distance, time). Page 1: board. Page 2: BLE diagnostics.
+// Pages: up to two configurable data screens, then (optionally) the board
+// status page and the BLE diagnostics page.
 class ESkateView extends WatchUi.View {
-    const PAGE_COUNT = 3;
-    var page as Number = 0;
+    enum {
+        PAGE_DATA1,
+        PAGE_DATA2,
+        PAGE_BOARD,
+        PAGE_DIAG
+    }
 
+    private var _index as Number = 0;
     private var _ride as RideSession;
     private var _board as BoardLink;
     private var _timer as Timer.Timer?;
@@ -25,15 +31,14 @@ class ESkateView extends WatchUi.View {
     function onLayout(dc as Dc) as Void {
         var ids = {
             :ready => Rez.Strings.Ready, :rec => Rez.Strings.Recording, :paused => Rez.Strings.Paused,
-            :dist => Rez.Strings.Distance, :time => Rez.Strings.Time, :max => Rez.Strings.MaxSpeed,
-            :avg => Rez.Strings.AvgSpeed, :board => Rez.Strings.Board, :battery => Rez.Strings.Battery,
-            :off => Rez.Strings.BoardOff, :scan => Rez.Strings.BoardScanning,
+            :board => Rez.Strings.Board, :battery => Rez.Strings.Battery,
+            :off => Rez.Strings.BoardOff, :scan => Rez.Strings.BoardScanning, :notfound => Rez.Strings.BoardNotFound,
             :connecting => Rez.Strings.BoardConnecting, :connected => Rez.Strings.BoardConnected,
             :nodata => Rez.Strings.NoData, :packets => Rez.Strings.Packets, :gps => Rez.Strings.GpsWait
         };
         var keys = ids.keys();
         for (var i = 0; i < keys.size(); i++) {
-            _s[keys[i] as Symbol] = WatchUi.loadResource(ids[keys[i]] as WatchUi.ResourceId) as String;
+            _s[keys[i] as Symbol] = WatchUi.loadResource(ids[keys[i]] as ResourceId) as String;
         }
     }
 
@@ -53,71 +58,173 @@ class ESkateView extends WatchUi.View {
         WatchUi.requestUpdate();
     }
 
+    // Pages are rebuilt from settings every time, so changes apply immediately.
+    private function pages() as Array<Number> {
+        var p = [PAGE_DATA1] as Array<Number>;
+        if (Config.screenUsed(1)) { p.add(PAGE_DATA2); }
+        if (Config.flag("boardEnabled")) {
+            if (Config.flag("showBoardPage")) { p.add(PAGE_BOARD); }
+            if (Config.flag("showDiagnostics")) { p.add(PAGE_DIAG); }
+        }
+        return p;
+    }
+
     function nextPage(dir as Number) as Void {
-        page = (page + dir + PAGE_COUNT) % PAGE_COUNT;
+        var n = pages().size();
+        _index = ((_index + dir) % n + n) % n;
         WatchUi.requestUpdate();
     }
 
     // ---- drawing ----
     function onUpdate(dc as Dc) as Void {
+        var p = pages();
+        if (_index >= p.size()) { _index = 0; }
+
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
         drawHeader(dc);
-        if (page == 0) {
-            drawRide(dc);
-        } else if (page == 1) {
+        var page = p[_index];
+        if (page == PAGE_DATA1) {
+            drawDataScreen(dc, 0);
+        } else if (page == PAGE_DATA2) {
+            drawDataScreen(dc, 1);
+        } else if (page == PAGE_BOARD) {
             drawBoard(dc);
         } else {
             drawDiagnostics(dc);
         }
-        drawPageDots(dc);
+        drawPageDots(dc, p.size());
     }
 
+    // "14:16  REC" on one line; status colored.
     private function drawHeader(dc as Dc) as Void {
         var w = dc.getWidth();
         var h = dc.getHeight();
-        var clock = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
-        text(dc, w / 2, h * 0.08, Graphics.FONT_XTINY, Graphics.COLOR_LT_GRAY,
-             clock.hour.format("%02d") + ":" + clock.min.format("%02d"));
+        var c = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
+        var clock = c.hour.format("%02d") + ":" + c.min.format("%02d");
 
         var label;
         var color;
-        if (_ride.isRecording()) {
+        if (!_ride.gpsReady()) {
+            label = _s[:gps]; color = Graphics.COLOR_ORANGE;
+        } else if (_ride.isRecording()) {
             label = _s[:rec]; color = Graphics.COLOR_RED;
         } else if (_ride.hasSession()) {
             label = _s[:paused]; color = Graphics.COLOR_YELLOW;
         } else {
             label = _s[:ready]; color = Graphics.COLOR_GREEN;
         }
-        if (!_ride.gpsReady()) {
-            label = _s[:gps]; color = Graphics.COLOR_ORANGE;
-        }
-        text(dc, w / 2, h * 0.16, Graphics.FONT_XTINY, color, label);
+        if (label == null) { label = ""; }
+
+        var font = Graphics.FONT_XTINY;
+        var gap = dc.getTextWidthInPixels(" ", font) * 2;
+        var cw = dc.getTextWidthInPixels(clock, font);
+        var lw = dc.getTextWidthInPixels(label, font);
+        var x = (w - cw - gap - lw) / 2;
+        var y = h * 0.10;
+        dc.setColor(Graphics.COLOR_LT_GRAY, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(x, y, font, clock, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.setColor(color, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(x + cw + gap, y, font, label, Graphics.TEXT_JUSTIFY_LEFT | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
-    private function drawRide(dc as Dc) as Void {
+    // Layout:   label (unit)
+    //           MAIN VALUE
+    //       left        right
+    //          bottom line
+    private function drawDataScreen(dc as Dc, screen as Number) as Void {
         var w = dc.getWidth();
         var h = dc.getHeight();
-        var metric = Units.isMetric();
+        var xtinyH = dc.getFontHeight(Graphics.FONT_XTINY);
+        var y = h * 0.21;
 
-        text(dc, w / 2, h * 0.38, Graphics.FONT_NUMBER_THAI_HOT, Graphics.COLOR_WHITE,
-             Units.speed(_ride.speed()).toNumber().format("%d"));
-        text(dc, w / 2, h * 0.55, Graphics.FONT_TINY, Graphics.COLOR_LT_GRAY,
-             metric ? "km/h" : "mph");
+        // main field
+        var main = Config.field(screen, 0);
+        if (main != Fields.NONE) {
+            var v = Fields.value(main, _ride, _board);
+            text(dc, w / 2, y, Graphics.FONT_XTINY, Graphics.COLOR_LT_GRAY, label(main, v));
+            var font = fitFont(dc, valueText(v),
+                [Graphics.FONT_NUMBER_THAI_HOT, Graphics.FONT_NUMBER_HOT,
+                 Graphics.FONT_NUMBER_MEDIUM, Graphics.FONT_NUMBER_MILD] as Array<Graphics.FontType>,
+                w * 0.80, h * 0.36);
+            var fh = dc.getFontHeight(font);
+            var vy = y + xtinyH / 2 + fh * 0.45;
+            text(dc, w / 2, vy, font, valueColor(main), valueText(v));
+            y = vy + fh * 0.45;
+        } else {
+            y = h * 0.45;
+        }
 
-        // distance | time
-        text(dc, w * 0.30, h * 0.66, Graphics.FONT_XTINY, Graphics.COLOR_LT_GRAY, _s[:dist]);
-        text(dc, w * 0.30, h * 0.74, Graphics.FONT_MEDIUM, Graphics.COLOR_WHITE,
-             Units.distance(_ride.distance()).format("%.2f") + (metric ? " km" : " mi"));
-        text(dc, w * 0.70, h * 0.66, Graphics.FONT_XTINY, Graphics.COLOR_LT_GRAY, _s[:time]);
-        text(dc, w * 0.70, h * 0.74, Graphics.FONT_MEDIUM, Graphics.COLOR_WHITE,
-             Units.duration(_ride.timerMs()));
+        // left | right
+        var left = Config.field(screen, 1);
+        var right = Config.field(screen, 2);
+        if (left != Fields.NONE || right != Fields.NONE) {
+            var labelY = y + xtinyH * 0.6;
+            var valueY = labelY + xtinyH * 0.5 + dc.getFontHeight(Graphics.FONT_MEDIUM) * 0.5;
+            var both = left != Fields.NONE && right != Fields.NONE;
+            if (left != Fields.NONE) {
+                drawSmallField(dc, left, both ? w * 0.30 : w / 2, labelY, valueY, both ? w * 0.38 : w * 0.7);
+            }
+            if (right != Fields.NONE) {
+                drawSmallField(dc, right, both ? w * 0.70 : w / 2, labelY, valueY, both ? w * 0.38 : w * 0.7);
+            }
+            y = valueY + dc.getFontHeight(Graphics.FONT_MEDIUM) * 0.5;
+        }
 
-        // max | board battery
-        var bat = _board.battery;
-        text(dc, w / 2, h * 0.85, Graphics.FONT_XTINY, Graphics.COLOR_LT_GRAY,
-             _s[:max] + " " + Units.speed(_ride.maxSpeed()).format("%.1f") +
-             "   " + _s[:board] + " " + (bat != null ? bat.format("%d") + "%" : "--"));
+        // bottom: "Speed 24 km/h"
+        var bottom = Config.field(screen, 3);
+        if (bottom != Fields.NONE) {
+            var v = Fields.value(bottom, _ride, _board);
+            var unit = v[1].equals("%") || v[1].equals("") ? "" : " " + v[1];
+            var str = Fields.LABELS[bottom] + " " + valueText(v) + unit;
+            var font = fitFont(dc, str, [Graphics.FONT_SMALL, Graphics.FONT_TINY, Graphics.FONT_XTINY] as Array<Graphics.FontType>,
+                               w * 0.62, h);
+            var by = y + dc.getFontHeight(font) * 0.6;
+            if (by < h * 0.82) { by = h * 0.82; }
+            text(dc, w / 2, by, font, valueColor(bottom), str);
+        }
+    }
+
+    private function drawSmallField(dc as Dc, id as Number, x as Numeric, labelY as Numeric, valueY as Numeric,
+                                    maxW as Numeric) as Void {
+        var v = Fields.value(id, _ride, _board);
+        text(dc, x, labelY, Graphics.FONT_XTINY, Graphics.COLOR_LT_GRAY, label(id, v));
+        var font = fitFont(dc, valueText(v), [Graphics.FONT_MEDIUM, Graphics.FONT_SMALL, Graphics.FONT_TINY] as Array<Graphics.FontType>,
+                           maxW, dc.getHeight());
+        text(dc, x, valueY, font, valueColor(id), valueText(v));
+    }
+
+    private function label(id as Number, v as Array<String>) as String {
+        var unit = v[1];
+        return (unit.equals("") || unit.equals("%")) ? Fields.LABELS[id] : Fields.LABELS[id] + " " + unit;
+    }
+
+    private function valueText(v as Array<String>) as String {
+        return v[1].equals("%") ? v[0] + "%" : v[0];
+    }
+
+    private function valueColor(id as Number) as Graphics.ColorType {
+        if (id == Fields.SPEED && _ride.overSpeedLimit()) {
+            return Graphics.COLOR_RED;
+        }
+        return Graphics.COLOR_WHITE;
+    }
+
+    // First font from the list whose rendering of str fits maxW x maxH.
+    // Number fonts contain only digits and a few symbols, so "%" values
+    // fall back to regular fonts.
+    private function fitFont(dc as Dc, str as String, fonts as Array<Graphics.FontType>,
+                             maxW as Numeric, maxH as Numeric) as Graphics.FontType {
+        var isNumberFont = fonts[0] == Graphics.FONT_NUMBER_THAI_HOT;
+        if (isNumberFont && str.find("%") != null) {
+            fonts = [Graphics.FONT_LARGE, Graphics.FONT_MEDIUM] as Array<Graphics.FontType>;
+        }
+        for (var i = 0; i < fonts.size(); i++) {
+            if (dc.getTextWidthInPixels(str, fonts[i]) <= maxW && dc.getFontHeight(fonts[i]) <= maxH) {
+                return fonts[i];
+            }
+        }
+        return fonts[fonts.size() - 1];
     }
 
     private function drawBoard(dc as Dc) as Void {
@@ -133,6 +240,8 @@ class ESkateView extends WatchUi.View {
             status = _s[:connecting]; color = Graphics.COLOR_YELLOW;
         } else if (b.state == BoardLink.STATE_SCANNING) {
             status = _s[:scan]; color = Graphics.COLOR_YELLOW;
+        } else if (b.state == BoardLink.STATE_WAITING) {
+            status = _s[:notfound]; color = Graphics.COLOR_ORANGE;
         } else {
             status = _s[:off];
         }
@@ -141,7 +250,7 @@ class ESkateView extends WatchUi.View {
         text(dc, w / 2, h * 0.37, Graphics.FONT_XTINY, color, status);
 
         var bat = b.battery;
-        text(dc, w / 2, h * 0.52, Graphics.FONT_NUMBER_MEDIUM, Graphics.COLOR_WHITE,
+        text(dc, w / 2, h * 0.52, Graphics.FONT_LARGE, Graphics.COLOR_WHITE,
              bat != null ? bat.format("%d") + "%" : "--");
         text(dc, w / 2, h * 0.64, Graphics.FONT_XTINY, Graphics.COLOR_LT_GRAY, _s[:battery]);
 
@@ -175,14 +284,15 @@ class ESkateView extends WatchUi.View {
         }
     }
 
-    private function drawPageDots(dc as Dc) as Void {
+    private function drawPageDots(dc as Dc, count as Number) as Void {
+        if (count < 2) { return; }
         var w = dc.getWidth();
         var h = dc.getHeight();
         var r = 4;
         var gap = 14;
-        var x0 = w / 2 - (PAGE_COUNT - 1) * gap / 2;
-        for (var i = 0; i < PAGE_COUNT; i++) {
-            dc.setColor(i == page ? Graphics.COLOR_WHITE : Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
+        var x0 = w / 2 - (count - 1) * gap / 2;
+        for (var i = 0; i < count; i++) {
+            dc.setColor(i == _index ? Graphics.COLOR_WHITE : Graphics.COLOR_DK_GRAY, Graphics.COLOR_TRANSPARENT);
             dc.fillCircle(x0 + i * gap, h * 0.94, r);
         }
     }

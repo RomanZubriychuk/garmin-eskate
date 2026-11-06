@@ -1,75 +1,129 @@
-# E-Skate — приложение Connect IQ для электроскейта (Garmin Fenix 8)
+# E-Skate — Connect IQ app for electric skateboards (Garmin watches)
 
-Отдельная активность для катания на электроскейте (сделана под Exway Atlas Pro),
-чтобы не выбирать «Ролики» или «Электровелосипед».
+A dedicated activity for riding an electric skateboard (built for the Exway Atlas Pro),
+so you don't have to record rides as "Inline Skating" or "E-Bike".
 
-## Что умеет
+## Features
 
-| Экран | Содержимое |
+The Exway remote already shows speed and board battery, so the watch focuses on what
+the remote doesn't: recording the ride, distance, ride time and heart rate.
+
+| Screen | Default contents |
 |---|---|
-| 1. Поездка | большая текущая скорость, дистанция, время, макс. скорость, заряд доски |
-| 2. Доска | статус Bluetooth, имя доски, заряд, напряжение |
-| 3. Диагностика | RSSI, найденные BLE-сервисы, «сырые» пакеты от доски (hex) |
+| 1. Data screen 1 | **distance** (large), ride time, heart rate, speed |
+| 2. Data screen 2 | **speed** (large), board battery, distance, max speed |
+| 3. Board | Bluetooth status, board name, battery, voltage (only when the board link is on) |
+| 4. Diagnostics | RSSI, discovered BLE services, raw packets (only when the board link is on) |
 
-- Запись поездки в FIT (GPS-трек, скорость, дистанция, круги) → синхронизация в Garmin Connect.
-- Вибро-предупреждение о превышении заданной скорости (настройка, 0 = выкл).
-- км/ч или mph — по настройкам часов. Интерфейс на русском и английском.
-- Касания экрана игнорируются, чтобы поездку нельзя было случайно остановить.
+- Records the ride to FIT (GPS track, speed, distance, heart rate, laps) → syncs to Garmin Connect.
+- Vibration alert when exceeding a configurable speed (setting, 0 = off); speed turns red.
+- km/h or mph, following the watch's unit settings.
+- Touch input is ignored so a ride can't be stopped accidentally.
 
-### Кнопки
+### Configurable data fields
 
-| Кнопка | Действие |
+Each data screen has 4 slots — main (large), left, right, bottom. Any slot can show:
+distance, ride time, heart rate, speed, max speed, average speed, board battery,
+board voltage, watch battery, time of day, calories, ascent — or nothing.
+Screen 2 is skipped when all its slots are empty.
+
+Change them either:
+- **on the watch**: hold UP (MENU) → *Data fields*, or
+- **on the phone**: Garmin Connect → device → Activities & Apps → E-Skate → Settings.
+
+### Buttons
+
+| Button | Action |
 |---|---|
-| START | старт / пауза (на паузе — меню «Продолжить / Сохранить / Удалить») |
-| BACK | новый круг во время записи; выход, если запись не идёт |
-| UP / DOWN | переключение экранов |
+| START | start / pause (when paused: "Resume / Save / Discard" menu) |
+| BACK | new lap while recording; exit when not recording |
+| UP / DOWN | switch screens (swipe up / down on watches without these buttons) |
+| hold UP (MENU) | data field settings |
 
-## Связь с доской Exway — важно
+## Battery use
 
-Exway не публикует свой Bluetooth-протокол. Приложение уже находит доску по имени
-(по умолчанию содержит `Exway`), подключается и подписывается на уведомления типичных
-«UART-over-BLE» сервисов (`FFE0/FFE1`, Nordic UART, `FFF0/FFF4`), но **расшифровки
-пакетов пока нет** — заряд показывается как `--`, а экран «Диагностика» показывает
-сырые данные. Управления доской (газ/тормоз) нет и не будет — это небезопасно.
+- The screen is redrawn once per second — not on every GPS fix or Bluetooth packet.
+- Settings are cached in memory and reread only when they change.
+- The board link is **off by default**: until the Exway protocol is decoded it gives no
+  useful data, and Bluetooth scanning is the biggest drain after GPS.
+- When the board link is on, the board is searched in 30 s windows with 90 s pauses
+  instead of scanning continuously.
+- GPS uses the watch's default (single-band) mode.
 
-Чтобы добавить заряд/напряжение/скорость с контроллера, нужен дамп протокола:
+## Connecting to the Exway board — important
 
-1. Android → «Для разработчиков» → включить **Bluetooth HCI snoop log**.
-2. Покататься/подключиться через официальное приложение Exway пару минут,
-   отметив, какой был заряд в процентах.
-3. Выгрузить лог (`adb bugreport`) или снять данные через **nRF Connect**
-   (UUID сервисов и характеристик + примеры пакетов).
-4. Описать формат в `source/BoardProtocol.mc` (там есть заготовка).
+No pairing in the watch's Sensors menu is needed (it only supports standard sensors).
+Turn on **Connect to board** (hold UP → *Data fields*, or in Garmin Connect settings);
+the app then finds the board by name and connects by itself.
 
-Учтите: часы и телефон обычно не могут одновременно держать соединение с доской —
-на время поездки закройте приложение Exway на телефоне.
+Exway does not publish its Bluetooth protocol. The app already finds the board by name
+(by default, the name contains `Exway`), connects, and subscribes to notifications on common
+"UART-over-BLE" services (`FFE0/FFE1`, Nordic UART, `FFF0/FFF4`), but **packet decoding is
+not implemented yet** — battery shows `--`, and the Diagnostics screen shows the raw data.
+There is no board control (throttle/brake), and there won't be — it's unsafe.
 
-## Сборка и установка
+To add battery/voltage/speed from the controller, a protocol capture is needed:
 
-1. Установить [Connect IQ SDK](https://developer.garmin.com/connect-iq/sdk/) (SDK Manager)
-   и расширение Monkey C для VS Code.
-2. Сгенерировать ключ разработчика: VS Code → `Monkey C: Generate a Developer Key`.
-3. Собрать для своей модели:
+1. Android → Developer options → enable **Bluetooth HCI snoop log**.
+2. Ride/connect with the official Exway app for a couple of minutes,
+   noting the battery percentage shown.
+3. Export the log (`adb bugreport`) or capture data with **nRF Connect**
+   (service and characteristic UUIDs + sample packets).
+4. Implement the format in `source/BoardProtocol.mc` (a stub is there).
+
+Note: the watch and the phone usually can't both hold a connection to the board —
+close the Exway app on your phone while riding.
+
+## Supported watches
+
+Any Garmin watch with Connect IQ API 3.1+ and Bluetooth LE support for apps.
+The manifest currently lists:
+
+- **fēnix** 6 / 6S / 6X Pro, 7 / 7S / 7X (incl. Pro), 8 (43/47 mm, Solar 47/51 mm), fēnix E
+- **epix** (Gen 2), epix Pro (42/47/51 mm)
+- **Enduro**, Enduro 2, Enduro 3
+- **MARQ** (Gen 2), MARQ Aviator (Gen 2)
+- **Forerunner** 165, 245, 255, 265, 745, 945 / 945 LTE, 955, 965 (incl. Music / S variants)
+- **Venu** 2 / 2S / 2 Plus, Venu 3 / 3S, Venu Sq 2, Venu X1
+- **vívoactive** 4 / 4S, vívoactive 5
+- **Instinct** 2 / 2S / 2X, Instinct Crossover, Instinct 3 (AMOLED 45/50 mm, Solar 45 mm)
+
+The screens use relative positions and font-based spacing, so they adapt to round,
+rectangular, AMOLED and MIP displays. To add a model, add its device ID to `manifest.xml`
+(or use VS Code → `Monkey C: Edit Products`). If the compiler rejects an ID, or reports
+that `BluetoothLowEnergy` is not available on a device, remove that device from the list.
+
+## Build and install
+
+1. Install the [Connect IQ SDK](https://developer.garmin.com/connect-iq/sdk/) (SDK Manager)
+   and the Monkey C extension for VS Code.
+2. Generate a developer key: VS Code → `Monkey C: Generate a Developer Key`.
+3. Build for your model (replace `fenix847mm` with your device ID from `manifest.xml`):
    ```bash
    monkeyc -f monkey.jungle -d fenix847mm -o bin/ESkate.prg -y developer_key.der
    ```
-   Поддерживаемые ID: `fenix843mm`, `fenix847mm`, `fenix8solar47mm`, `fenix8solar51mm`
-   (для других моделей добавьте ID в `manifest.xml`).
-4. Проверить в симуляторе: `connectiq` и `monkeydo bin/ESkate.prg fenix847mm`.
-5. Подключить часы по USB и скопировать `ESkate.prg` в `GARMIN/APPS/`.
+   To build a package for all listed watches (e.g. for the Connect IQ Store):
+   ```bash
+   monkeyc -e -f monkey.jungle -o bin/ESkate.iq -y developer_key.der
+   ```
+4. Test in the simulator: `connectiq`, then `monkeydo bin/ESkate.prg fenix847mm`.
+5. Connect the watch via USB and copy `ESkate.prg` to `GARMIN/APPS/`.
 
-В Garmin Connect активность сохранится как «Другое» с названием «E-Skate»
-(в Connect IQ нет отдельного типа спорта «скейтборд»), её можно переименовать
-или сменить тип в Garmin Connect.
+In Garmin Connect the activity is saved as "Other" with the name "E-Skate"
+(Connect IQ has no dedicated skateboarding sport type); you can rename it
+or change its type in Garmin Connect.
 
-## Структура
+## Structure
 
 ```
-manifest.xml            продукты Fenix 8, разрешения (GPS, FIT, BLE)
-source/ESkateApp.mc     точка входа, GPS
-source/RideSession.mc   запись активности, вибро-предупреждения
-source/BoardLink.mc     поиск и подключение к доске по BLE
-source/BoardProtocol.mc расшифровка пакетов доски (заготовка)
-source/ESkateView.mc    экраны
-source/ESkateDelegate.mc кнопки и меню остановки
+manifest.xml             supported watches, permissions (GPS, FIT, BLE)
+source/ESkateApp.mc      entry point, GPS
+source/RideSession.mc    activity recording, vibration alerts
+source/BoardLink.mc      board discovery and BLE connection
+source/BoardProtocol.mc  board packet decoding (stub)
+source/ESkateView.mc     screens
+source/Fields.mc         data field definitions and formatting
+source/Config.mc         data screen layout stored in settings
+source/FieldsMenu.mc     on-watch data field settings menu
+source/ESkateDelegate.mc buttons and stop menu
 ```

@@ -1,6 +1,7 @@
 import Toybox.Application;
 import Toybox.BluetoothLowEnergy;
 import Toybox.Lang;
+import Toybox.Timer;
 import Toybox.WatchUi;
 
 // Bluetooth LE link to the board.
@@ -10,10 +11,15 @@ import Toybox.WatchUi;
 // "serial over BLE" services and hands every packet to BoardProtocol.
 // Discovered services and the last raw packet are shown on the
 // diagnostics page so the real protocol can be worked out.
+//
+// Battery: scanning is the most expensive BLE state, so the board is
+// searched in 30 s windows with 90 s pauses instead of continuously.
+// Incoming packets don't trigger redraws; the view refreshes at 1 Hz.
 class BoardLink extends BluetoothLowEnergy.BleDelegate {
     enum {
         STATE_OFF,
         STATE_SCANNING,
+        STATE_WAITING,      // board not found, next scan scheduled
         STATE_CONNECTING,
         STATE_CONNECTED
     }
@@ -37,6 +43,10 @@ class BoardLink extends BluetoothLowEnergy.BleDelegate {
     private var _device as BluetoothLowEnergy.Device?;
     private var _nextProfile as Number = 0;
     private var _nameFilter as String = "exway";
+    private var _timer as Timer.Timer?;
+
+    const SCAN_WINDOW_MS = 30000;
+    const SCAN_PAUSE_MS = 90000;
 
     function initialize() {
         BleDelegate.initialize();
@@ -53,6 +63,7 @@ class BoardLink extends BluetoothLowEnergy.BleDelegate {
     }
 
     function stop() as Void {
+        stopTimer();
         BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
         var d = _device;
         if (d != null) {
@@ -91,7 +102,36 @@ class BoardLink extends BluetoothLowEnergy.BleDelegate {
     private function startScan() as Void {
         state = STATE_SCANNING;
         BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_SCANNING);
+        startTimer(method(:onScanTimeout), SCAN_WINDOW_MS);
         WatchUi.requestUpdate();
+    }
+
+    function onScanTimeout() as Void {
+        if (state == STATE_SCANNING) {
+            BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
+            state = STATE_WAITING;
+            startTimer(method(:onRetry), SCAN_PAUSE_MS);
+            WatchUi.requestUpdate();
+        }
+    }
+
+    function onRetry() as Void {
+        if (state == STATE_WAITING) {
+            startScan();
+        }
+    }
+
+    private function startTimer(callback as Method() as Void, ms as Number) as Void {
+        stopTimer();
+        var t = new Timer.Timer();
+        t.start(callback, ms, false);
+        _timer = t;
+    }
+
+    private function stopTimer() as Void {
+        var t = _timer;
+        if (t != null) { t.stop(); }
+        _timer = null;
     }
 
     // ---- scanning ----
@@ -105,6 +145,7 @@ class BoardLink extends BluetoothLowEnergy.BleDelegate {
             if (name != null && name.toLower().find(_nameFilter) != null) {
                 deviceName = name;
                 rssi = r.getRssi();
+                stopTimer();
                 BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
                 state = STATE_CONNECTING;
                 _device = BluetoothLowEnergy.pairDevice(r);
@@ -164,7 +205,6 @@ class BoardLink extends BluetoothLowEnergy.BleDelegate {
         if (b != null) {
             getApp().ride.setBoardBattery(b);
         }
-        WatchUi.requestUpdate();
     }
 
     private function toHex(bytes as ByteArray) as String {

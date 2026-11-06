@@ -1,5 +1,15 @@
 <properties>
     <property id="speedAlertKmh" type="number">0</property>
-    <property id="boardEnabled" type="boolean">true</property>
+    <property id="boardEnabled" type="boolean">false</property>
     <property id="boardNameFilter" type="string">Exway</property>
+    <property id="s1Main" type="number">1</property>
+    <property id="s1Left" type="number">2</property>
+    <property id="s1Right" type="number">3</property>
+    <property id="s1Bottom" type="number">4</property>
+    <property id="s2Main" type="number">4</property>
+    <property id="s2Left" type="number">7</property>
+    <property id="s2Right" type="number">1</property>
+    <property id="s2Bottom" type="number">5</property>
+    <property id="showBoardPage" type="boolean">true</property>
+    <property id="showDiagnostics" type="boolean">true</property>
 </properties>

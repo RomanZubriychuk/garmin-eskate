@@ -16,6 +16,11 @@ module Units {
         return isMetric() ? m / 1000.0 : m / 1609.344;
     }
 
+    // m -> m or ft
+    function elevation(m as Number) as Number {
+        return System.getDeviceSettings().elevationUnits == System.UNIT_METRIC ? m : (m * 3.28084).toNumber();
+    }
+
     // ms -> "m:ss" or "h:mm:ss"
     function duration(ms as Number) as String {
         var total = ms / 1000;

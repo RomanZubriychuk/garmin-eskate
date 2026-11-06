@@ -14,8 +14,15 @@ class RideSession {
     private var _speed as Float = 0.0;              // m/s, live from GPS
     private var _gpsQuality as Number = Position.QUALITY_NOT_AVAILABLE;
     private var _lastAlertMs as Number = 0;
+    private var _speedLimitKmh as Number = 0;    // cached setting, 0 = off
 
     function initialize() {
+        reloadSettings();
+    }
+
+    function reloadSettings() as Void {
+        var v = Application.Properties.getValue("speedAlertKmh");
+        _speedLimitKmh = v instanceof Number ? v : 0;
     }
 
     // ---- state ----
@@ -106,32 +113,57 @@ class RideSession {
     }
 
     function distance() as Float {
-        var d = hasSession() ? Activity.getActivityInfo().elapsedDistance : null;
+        var i = sessionInfo();
+        var d = i != null ? i.elapsedDistance : null;
         return d != null ? d.toFloat() : 0.0;
     }
 
     function timerMs() as Number {
-        var t = hasSession() ? Activity.getActivityInfo().timerTime : null;
+        var i = sessionInfo();
+        var t = i != null ? i.timerTime : null;
         return t != null ? t : 0;
     }
 
     function maxSpeed() as Float {
-        var v = hasSession() ? Activity.getActivityInfo().maxSpeed : null;
+        var i = sessionInfo();
+        var v = i != null ? i.maxSpeed : null;
         return v != null ? v.toFloat() : 0.0;
     }
 
     function avgSpeed() as Float {
-        var v = hasSession() ? Activity.getActivityInfo().averageSpeed : null;
+        var i = sessionInfo();
+        var v = i != null ? i.averageSpeed : null;
         return v != null ? v.toFloat() : 0.0;
+    }
+
+    function calories() as Number? {
+        var i = sessionInfo();
+        return i != null ? i.calories : null;
+    }
+
+    // meters
+    function ascent() as Number? {
+        var i = sessionInfo();
+        return i != null ? i.totalAscent : null;
+    }
+
+    // Live wrist heart rate, available even before the ride is started.
+    function heartRate() as Number? {
+        var i = Activity.getActivityInfo();
+        return i != null ? i.currentHeartRate : null;
+    }
+
+    function overSpeedLimit() as Boolean {
+        return _speedLimitKmh > 0 && _speed * 3.6 >= _speedLimitKmh;
+    }
+
+    private function sessionInfo() as Activity.Info? {
+        return hasSession() ? Activity.getActivityInfo() : null;
     }
 
     // ---- helpers ----
     private function checkSpeedAlert() as Void {
-        var limit = Application.Properties.getValue("speedAlertKmh");
-        if (!(limit instanceof Number) || limit <= 0) {
-            return;
-        }
-        if (_speed * 3.6 < limit) {
+        if (!overSpeedLimit()) {
             return;
         }
         var now = System.getTimer();

@@ -1,10 +1,11 @@
 import Toybox.Lang;
 import Toybox.WatchUi;
 
-// Buttons (Fenix 8):
+// Buttons:
 //   START          start / pause ride (pause opens Resume / Save / Discard)
 //   BACK           lap while riding; exit when idle
-//   UP / DOWN      switch pages
+//   UP / DOWN      switch pages (swipe up / down on touch-only watches)
+//   hold UP (MENU) data field settings
 // Screen taps are ignored so a glove or a fall can't stop the ride.
 class ESkateDelegate extends WatchUi.BehaviorDelegate {
     private var _view as ESkateView;
@@ -43,6 +44,11 @@ class ESkateDelegate extends WatchUi.BehaviorDelegate {
             return true;
         }
         return false; // exit app
+    }
+
+    function onMenu() as Boolean {
+        FieldsMenu.open();
+        return true;
     }
 
     function onNextPage() as Boolean {

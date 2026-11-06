@@ -3,14 +3,11 @@
     <string id="Ready">READY</string>
     <string id="Recording">REC</string>
     <string id="Paused">PAUSED</string>
-    <string id="Distance">Distance</string>
-    <string id="Time">Time</string>
-    <string id="MaxSpeed">Max</string>
-    <string id="AvgSpeed">Avg</string>
     <string id="Board">Board</string>
     <string id="Battery">Battery</string>
     <string id="BoardOff">Board link off</string>
     <string id="BoardScanning">Searching board...</string>
+    <string id="BoardNotFound">Not found, retrying</string>
     <string id="BoardConnecting">Connecting...</string>
     <string id="BoardConnected">Connected</string>
     <string id="NoData">no data yet</string>
@@ -24,4 +21,29 @@
     <string id="SettingSpeedAlert">Speed alert, km/h (0 = off)</string>
     <string id="SettingBoardEnabled">Connect to board via Bluetooth</string>
     <string id="SettingBoardName">Board Bluetooth name contains</string>
+    <string id="FieldNone">None</string>
+    <string id="FieldDistance">Distance</string>
+    <string id="FieldRideTime">Ride time</string>
+    <string id="FieldHeartRate">Heart rate</string>
+    <string id="FieldSpeed">Speed</string>
+    <string id="FieldMaxSpeed">Max speed</string>
+    <string id="FieldAvgSpeed">Average speed</string>
+    <string id="FieldBoardBattery">Board battery</string>
+    <string id="FieldBoardVoltage">Board voltage</string>
+    <string id="FieldWatchBattery">Watch battery</string>
+    <string id="FieldClock">Time of day</string>
+    <string id="FieldCalories">Calories</string>
+    <string id="FieldAscent">Ascent</string>
+    <string id="MenuDataFields">Data fields</string>
+    <string id="MenuBoardLink">Connect to board</string>
+    <string id="MenuBoardPage">Board screen</string>
+    <string id="MenuDiagPage">Diagnostics screen</string>
+    <string id="SetS1Main">Screen 1: main field</string>
+    <string id="SetS1Left">Screen 1: left field</string>
+    <string id="SetS1Right">Screen 1: right field</string>
+    <string id="SetS1Bottom">Screen 1: bottom field</string>
+    <string id="SetS2Main">Screen 2: main field</string>
+    <string id="SetS2Left">Screen 2: left field</string>
+    <string id="SetS2Right">Screen 2: right field</string>
+    <string id="SetS2Bottom">Screen 2: bottom field</string>
 </strings>

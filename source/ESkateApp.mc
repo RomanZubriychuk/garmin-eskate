@@ -15,8 +15,16 @@ class ESkateApp extends Application.AppBase {
 
     function onStart(state as Dictionary?) as Void {
         Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
-        if (Application.Properties.getValue("boardEnabled") == true) {
+        applyBoardSetting();
+    }
+
+    // Starts or stops the board link to match the "boardEnabled" setting.
+    function applyBoardSetting() as Void {
+        var on = Config.flag("boardEnabled");
+        if (on && board.state == BoardLink.STATE_OFF) {
             board.start();
+        } else if (!on && board.state != BoardLink.STATE_OFF) {
+            board.stop();
         }
     }
 
@@ -25,9 +33,17 @@ class ESkateApp extends Application.AppBase {
         board.stop();
     }
 
-    function onPosition(info as Position.Info) as Void {
-        ride.onPosition(info);
+    // Settings edited in Garmin Connect on the phone.
+    function onSettingsChanged() as Void {
+        Config.reload();
+        ride.reloadSettings();
+        applyBoardSetting();
         WatchUi.requestUpdate();
+    }
+
+    function onPosition(info as Position.Info) as Void {
+        // No redraw here: the view refreshes once per second on its own.
+        ride.onPosition(info);
     }
 
     function getInitialView() as [WatchUi.Views] or [WatchUi.Views, WatchUi.InputDelegates] {
