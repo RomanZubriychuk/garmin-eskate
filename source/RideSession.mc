@@ -14,6 +14,7 @@ class RideSession {
     private var _speed as Float = 0.0;              // m/s, live from GPS
     private var _gpsQuality as Number = Position.QUALITY_NOT_AVAILABLE;
     private var _lastAlertMs as Number = 0;
+    var lapCount as Number = 1;
     private var _speedLimitKmh as Number = 0;    // cached setting, 0 = off
 
     function initialize() {
@@ -49,6 +50,7 @@ class RideSession {
         }
         (_session as ActivityRecording.Session).start();
         vibe(1);
+        tone(Attention.TONE_START);
     }
 
     function pause() as Void {
@@ -56,6 +58,7 @@ class RideSession {
         if (s != null && s.isRecording()) {
             s.stop();
             vibe(2);
+            tone(Attention.TONE_STOP);
         }
     }
 
@@ -63,7 +66,9 @@ class RideSession {
         var s = _session;
         if (s != null && s.isRecording()) {
             s.addLap();
+            lapCount++;
             vibe(1);
+            tone(Attention.TONE_LAP);
         }
     }
 
@@ -72,6 +77,8 @@ class RideSession {
         if (s != null) {
             if (s.isRecording()) { s.stop(); }
             s.save();
+            tone(Attention.TONE_SUCCESS);
+            lapCount = 1;
             _session = null;
             _batteryField = null;
         }
@@ -82,6 +89,7 @@ class RideSession {
         if (s != null) {
             if (s.isRecording()) { s.stop(); }
             s.discard();
+            lapCount = 1;
             _session = null;
             _batteryField = null;
         }
@@ -170,6 +178,13 @@ class RideSession {
         if (now - _lastAlertMs > 5000) {
             _lastAlertMs = now;
             vibe(3);
+        }
+    }
+
+    // Respects the watch's own "Tones" setting.
+    private function tone(t as Attention.Tone) as Void {
+        if (Attention has :playTone) {
+            Attention.playTone(t);
         }
     }
 
