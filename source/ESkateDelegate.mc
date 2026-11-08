@@ -6,7 +6,7 @@ import Toybox.WatchUi;
 //   START          start / pause ride (pause opens Resume / Save / Discard)
 //   BACK           lap while riding; exit when idle
 //   UP / DOWN      switch pages (swipe up / down on touch-only watches)
-//   hold UP (MENU) data field settings
+//   hold UP (MENU) settings menu
 // Screen taps are ignored so a glove or a fall can't stop the ride.
 class ESkateDelegate extends WatchUi.BehaviorDelegate {
     private var _view as ESkateView;
@@ -23,23 +23,30 @@ class ESkateDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function onSelect() as Boolean {
+        if (_view.fx.isActive()) {
+            return true;   // ignore presses during the animation
+        }
         if (_ride.isRecording()) {
             _ride.pause();
-            showStopMenu();
+            _view.fx.play(Feedback.PAUSE, method(:showStopMenu));
         } else if (_ride.hasSession()) {
             showStopMenu();
         } else {
             _ride.start();
-            Feedback.toast(WatchUi.loadResource(Rez.Strings.ToastStarted) as String, Rez.Drawables.ToastCheck);
+            _view.fx.play(Feedback.START, null);
         }
         WatchUi.requestUpdate();
         return true;
     }
 
     function onBack() as Boolean {
+        if (_view.fx.isActive()) {
+            return true;
+        }
         if (_ride.isRecording()) {
             _ride.lap();
-            Feedback.toast("Lap " + _ride.lapCount.format("%d"), null);
+            _view.fx.lap = _ride.lapCount;
+            _view.fx.play(Feedback.LAP, null);
             return true;
         }
         if (_ride.hasSession()) {
@@ -50,7 +57,7 @@ class ESkateDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function onMenu() as Boolean {
-        FieldsMenu.open();
+        new SettingsMenu().open();
         return true;
     }
 
@@ -64,7 +71,7 @@ class ESkateDelegate extends WatchUi.BehaviorDelegate {
         return true;
     }
 
-    private function showStopMenu() as Void {
+    function showStopMenu() as Void {
         var menu = new WatchUi.Menu2({ :title => Rez.Strings.MenuTitle });
         menu.addItem(new WatchUi.IconMenuItem(Rez.Strings.Resume, null, :resume,
                      menuIcon(Rez.Drawables.MenuResume), {}));
@@ -72,7 +79,7 @@ class ESkateDelegate extends WatchUi.BehaviorDelegate {
                      menuIcon(Rez.Drawables.MenuSave), {}));
         menu.addItem(new WatchUi.IconMenuItem(Rez.Strings.Discard, null, :discard,
                      menuIcon(Rez.Drawables.MenuDiscard), {}));
-        WatchUi.pushView(menu, new StopMenuDelegate(_ride), WatchUi.SLIDE_UP);
+        WatchUi.pushView(menu, new StopMenuDelegate(_ride, _view.fx), WatchUi.SLIDE_UP);
     }
 
     // Menu icons are passed as Drawables: passing a raw BitmapResource
@@ -84,10 +91,12 @@ class ESkateDelegate extends WatchUi.BehaviorDelegate {
 
 class StopMenuDelegate extends WatchUi.Menu2InputDelegate {
     private var _ride as RideSession;
+    private var _fx as Feedback;
 
-    function initialize(ride as RideSession) {
+    function initialize(ride as RideSession, fx as Feedback) {
         Menu2InputDelegate.initialize();
         _ride = ride;
+        _fx = fx;
     }
 
     function onSelect(item as WatchUi.MenuItem) as Void {
@@ -95,13 +104,13 @@ class StopMenuDelegate extends WatchUi.Menu2InputDelegate {
         WatchUi.popView(WatchUi.SLIDE_DOWN);
         if (id == :resume) {
             _ride.start();
-            Feedback.toast(WatchUi.loadResource(Rez.Strings.ToastResumed) as String, Rez.Drawables.ToastCheck);
+            _fx.play(Feedback.START, null);
         } else if (id == :save) {
             _ride.save();
-            Feedback.toast(WatchUi.loadResource(Rez.Strings.ToastSaved) as String, Rez.Drawables.ToastSave);
+            _fx.play(Feedback.SAVED, null);
         } else if (id == :discard) {
             _ride.discard();
-            Feedback.toast(WatchUi.loadResource(Rez.Strings.ToastDiscarded) as String, Rez.Drawables.ToastDiscard);
+            _fx.play(Feedback.DISCARDED, null);
         }
     }
 }

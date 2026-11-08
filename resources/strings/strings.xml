@@ -1,7 +1,6 @@
 <strings>
     <string id="AppName">E-Skate</string>
     <string id="Ready">READY</string>
-    <string id="Recording">REC</string>
     <string id="Paused">PAUSED</string>
     <string id="Board">Board</string>
     <string id="Battery">Battery</string>
@@ -12,7 +11,7 @@
     <string id="BoardConnected">Connected</string>
     <string id="NoData">no data yet</string>
     <string id="Packets">Packets</string>
-    <string id="GpsWait">Waiting for GPS</string>
+    <string id="GpsWait">GPS</string>
     <string id="MenuTitle">Ride</string>
     <string id="Resume">Resume</string>
     <string id="Save">Save</string>
@@ -34,10 +33,9 @@
     <string id="FieldClock">Time of day</string>
     <string id="FieldCalories">Calories</string>
     <string id="FieldAscent">Ascent</string>
-    <string id="MenuDataFields">Data fields</string>
-    <string id="MenuBoardLink">Connect to board</string>
-    <string id="MenuBoardPage">Board screen</string>
-    <string id="MenuDiagPage">Diagnostics screen</string>
+    <string id="MenuBoardLink">Connect to Board</string>
+    <string id="MenuBoardPage">Board Screen</string>
+    <string id="MenuDiagPage">Diagnostics</string>
     <string id="SetS1Main">Screen 1: main field</string>
     <string id="SetS1Left">Screen 1: left field</string>
     <string id="SetS1Right">Screen 1: right field</string>
@@ -46,8 +44,13 @@
     <string id="SetS2Left">Screen 2: left field</string>
     <string id="SetS2Right">Screen 2: right field</string>
     <string id="SetS2Bottom">Screen 2: bottom field</string>
-    <string id="ToastStarted">Ride started</string>
-    <string id="ToastResumed">Ride resumed</string>
-    <string id="ToastSaved">Ride saved</string>
-    <string id="ToastDiscarded">Ride discarded</string>
+    <string id="MenuDataScreens">Data Screens</string>
+    <string id="MenuAlerts">Alerts</string>
+    <string id="MenuSpeedAlert">Speed Alert</string>
+    <string id="MenuBoard">Board</string>
+    <string id="MenuAbout">About</string>
+    <string id="MenuBackground">Background</string>
+    <string id="ThemeAuto">Auto</string>
+    <string id="ThemeLight">Light</string>
+    <string id="ThemeDark">Dark</string>
 </strings>

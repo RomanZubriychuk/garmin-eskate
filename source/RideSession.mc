@@ -77,6 +77,7 @@ class RideSession {
         if (s != null) {
             if (s.isRecording()) { s.stop(); }
             s.save();
+            vibe(1);
             tone(Attention.TONE_SUCCESS);
             lapCount = 1;
             _session = null;

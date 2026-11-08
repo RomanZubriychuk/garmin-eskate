@@ -12,4 +12,5 @@
     <property id="s2Bottom" type="number">5</property>
     <property id="showBoardPage" type="boolean">true</property>
     <property id="showDiagnostics" type="boolean">true</property>
+    <property id="theme" type="number">0</property>
 </properties>

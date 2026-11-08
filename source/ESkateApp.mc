@@ -39,6 +39,7 @@ class ESkateApp extends Application.AppBase {
     // Settings edited in Garmin Connect on the phone.
     function onSettingsChanged() as Void {
         Config.reload();
+        Theme.reload();
         ride.reloadSettings();
         applyBoardSetting();
         WatchUi.requestUpdate();

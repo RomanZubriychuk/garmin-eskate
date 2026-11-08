@@ -150,4 +150,11 @@
     <setting propertyKey="@Properties.showDiagnostics" title="@Strings.MenuDiagPage">
         <settingConfig type="boolean"/>
     </setting>
+    <setting propertyKey="@Properties.theme" title="@Strings.MenuBackground">
+        <settingConfig type="list">
+            <listEntry value="0">@Strings.ThemeAuto</listEntry>
+            <listEntry value="1">@Strings.ThemeLight</listEntry>
+            <listEntry value="2">@Strings.ThemeDark</listEntry>
+        </settingConfig>
+    </setting>
 </settings>

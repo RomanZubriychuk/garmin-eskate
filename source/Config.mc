@@ -63,4 +63,14 @@ module Config {
         Application.Properties.setValue(name, on);
         _flags.put(name, on);
     }
+
+    // Plain numeric settings (theme, speed alert); read rarely, not cached.
+    function number(name as String, def as Number) as Number {
+        var v = Application.Properties.getValue(name);
+        return v instanceof Number ? v : def;
+    }
+
+    function setNumber(name as String, v as Number) as Void {
+        Application.Properties.setValue(name, v);
+    }
 }

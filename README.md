@@ -19,6 +19,9 @@ the remote doesn't: recording the ride, distance, ride time and heart rate.
 - Vibration alert when exceeding a configurable speed (setting, 0 = off); speed turns red.
 - km/h or mph, following the watch's unit settings.
 - Touch input is ignored so a ride can't be stopped accidentally.
+- Looks like native Garmin activities: 4-field data pages with divider lines, light
+  background on MIP watches and dark on AMOLED (Data Screens → Background),
+  start/stop animation with a sweeping border, system tones and button hints.
 
 ### Configurable data fields
 
@@ -28,7 +31,7 @@ board voltage, watch battery, time of day, calories, ascent — or nothing.
 Screen 2 is skipped when all its slots are empty.
 
 Change them either:
-- **on the watch**: hold UP (MENU) → *Data fields*, or
+- **on the watch**: hold UP (MENU) → *Data Screens*, or
 - **on the phone**: Garmin Connect → device → Activities & Apps → E-Skate → Settings.
 
 ### Buttons
@@ -38,7 +41,7 @@ Change them either:
 | START | start / pause (when paused: "Resume / Save / Discard" menu) |
 | BACK | new lap while recording; exit when not recording |
 | UP / DOWN | switch screens (swipe up / down on watches without these buttons) |
-| hold UP (MENU) | data field settings |
+| hold UP (MENU) | settings: Data Screens, Alerts, Board, About |
 
 ## Battery use
 
@@ -53,7 +56,7 @@ Change them either:
 ## Connecting to the Exway board — important
 
 No pairing in the watch's Sensors menu is needed (it only supports standard sensors).
-Turn on **Connect to board** (hold UP → *Data fields*, or in Garmin Connect settings);
+Turn on **Connect to Board** (hold UP → *Board*, or in Garmin Connect settings);
 the app then finds the board by name and connects by itself.
 
 Exway does not publish its Bluetooth protocol. The app already finds the board by name
@@ -124,6 +127,8 @@ source/BoardProtocol.mc  board packet decoding (stub)
 source/ESkateView.mc     screens
 source/Fields.mc         data field definitions and formatting
 source/Config.mc         data screen layout stored in settings
-source/FieldsMenu.mc     on-watch data field settings menu
+source/SettingsMenu.mc   on-watch settings menu
+source/Feedback.mc       start/stop/lap/save animation
+source/Theme.mc          light/dark colors
 source/ESkateDelegate.mc buttons and stop menu
 ```
