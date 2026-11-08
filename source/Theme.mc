@@ -40,5 +40,4 @@ module Theme {
     function good() as Number { return isLight() ? Graphics.COLOR_DK_GREEN : Graphics.COLOR_GREEN; }
     function warn() as Number { return Graphics.COLOR_ORANGE; }
     function bad() as Number { return isLight() ? Graphics.COLOR_DK_RED : Graphics.COLOR_RED; }
-    function lap() as Number { return isLight() ? Graphics.COLOR_DK_BLUE : Graphics.COLOR_BLUE; }
 }

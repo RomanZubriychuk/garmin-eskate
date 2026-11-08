@@ -1,0 +1,9 @@
+<layouts>
+    <!-- Native delete confirmation (personality library): red trash hint at
+         START, "keep" hint at the lower left, prompt in the middle. -->
+    <layout id="DiscardConfirm">
+        <bitmap id="deleteIcon" personality="confirmation_icon_dark__hint_delete confirmation_loc__hint_delete"/>
+        <bitmap id="keepIcon" personality="confirmation_icon_dark__hint_keep confirmation_loc__hint_keep"/>
+        <text-area id="prompt" text="@Strings.DiscardPrompt" personality="confirmation_color_dark__body confirmation_size__body confirmation_loc__body confirmation_font__body"/>
+    </layout>
+</layouts>

@@ -1,7 +1,5 @@
 <strings>
     <string id="AppName">E-Skate</string>
-    <string id="Ready">READY</string>
-    <string id="Paused">PAUSED</string>
     <string id="Board">Board</string>
     <string id="Battery">Battery</string>
     <string id="BoardOff">Board link off</string>
@@ -11,12 +9,20 @@
     <string id="BoardConnected">Connected</string>
     <string id="NoData">no data yet</string>
     <string id="Packets">Packets</string>
-    <string id="GpsWait">GPS</string>
+    <string id="UnitPercent">%</string>
+    <string id="UnitVolt">V</string>
+    <string id="FitBattery">Board Battery</string>
+    <string id="FitVoltage">Board Voltage</string>
+    <string id="FitBattUsed">Board Battery Used</string>
     <string id="MenuTitle">Ride</string>
     <string id="Resume">Resume</string>
     <string id="Save">Save</string>
     <string id="Discard">Discard</string>
-    <string id="Saved">Saved</string>
+    <string id="Timer">TIMER</string>
+    <string id="Saving">Saving</string>
+    <string id="Discarding">Discarding</string>
+    <string id="RideSaved">Ride Saved</string>
+    <string id="RideDiscarded">Ride Discarded</string>
     <string id="SettingSpeedAlert">Speed alert, km/h (0 = off)</string>
     <string id="SettingBoardEnabled">Connect to board via Bluetooth</string>
     <string id="SettingBoardName">Board Bluetooth name contains</string>
@@ -53,4 +59,5 @@
     <string id="ThemeAuto">Auto</string>
     <string id="ThemeLight">Light</string>
     <string id="ThemeDark">Dark</string>
+    <string id="DiscardPrompt">Discard?</string>
 </strings>

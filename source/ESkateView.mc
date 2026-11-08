@@ -2,11 +2,13 @@ import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.Math;
 import Toybox.System;
-import Toybox.Timer;
 import Toybox.WatchUi;
 
 // Pages: up to two configurable data screens, then (optionally) the board
-// status page and the BLE diagnostics page.
+// status page and the BLE diagnostics page. UP / DOWN slide the next page in
+// like native activities: both pages are drawn once into off-screen bitmaps
+// and only those are moved, because the system slide transition shows a
+// black block for a view that has not been drawn yet.
 //
 // Data screens copy the native Garmin 4-field activity page: a field on top,
 // two side by side in the middle, one at the bottom, separated by lines;
@@ -22,52 +24,47 @@ class ESkateView extends WatchUi.View {
     const ROW1 = 0.36;   // top field ends here (fraction of height)
     const ROW2 = 0.68;   // middle row ends here
     const PAGE_HINT_MS = 2000;
+    const SLIDE_MS = 280;
 
-    var fx as Feedback = new Feedback();
-    private var _index as Number = 0;
+    private var _index as Number;
     private var _pageChangedAt as Number = -100000;
     private var _ride as RideSession;
     private var _board as BoardLink;
-    private var _timer as Timer.Timer?;
-    private var _hintStart as Array<WatchUi.Drawable>? = null;
-    private var _hintStop as Array<WatchUi.Drawable>? = null;
     private var _s as Dictionary<Symbol, String> = {} as Dictionary<Symbol, String>;
+    private var _slideFrom as Graphics.BufferedBitmapReference? = null;
+    private var _slideTo as Graphics.BufferedBitmapReference? = null;
+    private var _slideDir as Number = 0;
+    private var _slideStart as Number = 0;
 
-    function initialize(ride as RideSession, board as BoardLink) {
+    function initialize(ride as RideSession, board as BoardLink, index as Number, pageChanged as Boolean) {
         View.initialize();
         _ride = ride;
         _board = board;
+        _index = index;
+        if (pageChanged) {
+            _pageChangedAt = System.getTimer();
+        }
+    }
+
+    function index() as Number {
+        return _index;
+    }
+
+    function pageCount() as Number {
+        return pages().size();
     }
 
     function onLayout(dc as Dc) as Void {
         var ids = {
-            :ready => Rez.Strings.Ready, :paused => Rez.Strings.Paused,
             :board => Rez.Strings.Board, :battery => Rez.Strings.Battery,
             :off => Rez.Strings.BoardOff, :scan => Rez.Strings.BoardScanning, :notfound => Rez.Strings.BoardNotFound,
             :connecting => Rez.Strings.BoardConnecting, :connected => Rez.Strings.BoardConnected,
-            :nodata => Rez.Strings.NoData, :packets => Rez.Strings.Packets, :gps => Rez.Strings.GpsWait
+            :nodata => Rez.Strings.NoData, :packets => Rez.Strings.Packets
         };
-        loadHints(dc);
         var keys = ids.keys();
         for (var i = 0; i < keys.size(); i++) {
             _s[keys[i] as Symbol] = WatchUi.loadResource(ids[keys[i]] as ResourceId) as String;
         }
-    }
-
-    function onShow() as Void {
-        var t = new Timer.Timer();
-        t.start(method(:onTick), 1000, true);
-        _timer = t;
-    }
-
-    function onHide() as Void {
-        var t = _timer;
-        if (t != null) { t.stop(); }
-        _timer = null;
-    }
-
-    function onTick() as Void {
-        WatchUi.requestUpdate();
     }
 
     // Pages are rebuilt from settings every time, so changes apply immediately.
@@ -83,11 +80,38 @@ class ESkateView extends WatchUi.View {
         return p;
     }
 
-    function nextPage(dir as Number) as Void {
-        var n = pages().size();
-        _index = ((_index + dir) % n + n) % n;
-        _pageChangedAt = System.getTimer();
+    // Next (dir 1) or previous (dir -1) page, sliding up / down.
+    function changePage(dir as Number) as Void {
+        var p = pages();
+        var n = p.size();
+        if (n < 2) { return; }
+        if (_index >= n) { _index = 0; }
+        var from = _index;
+        var to = ((from + dir) % n + n) % n;
+        _slideFrom = null;
+        _slideTo = null;
+        if (Graphics has :createBufferedBitmap) {
+            _slideFrom = render(p[from]);
+            _slideTo = render(p[to]);
+        }
+        _index = to;
+        _slideDir = dir;
+        _slideStart = System.getTimer();
+        _pageChangedAt = _slideStart;
+        getApp().ticker.fastFor(SLIDE_MS + 80);
         WatchUi.requestUpdate();
+    }
+
+    private function render(page as Number) as Graphics.BufferedBitmapReference? {
+        var ds = System.getDeviceSettings();
+        var ref = Graphics.createBufferedBitmap({ :width => ds.screenWidth, :height => ds.screenHeight });
+        var b = ref.get() as Graphics.BufferedBitmap?;
+        if (b == null) { return null; }
+        var bdc = b.getDc();
+        bdc.setColor(Theme.bg(), Theme.bg());
+        bdc.clear();
+        drawPage(bdc, page);
+        return ref;
     }
 
     // ---- drawing ----
@@ -95,13 +119,44 @@ class ESkateView extends WatchUi.View {
         var p = pages();
         if (_index >= p.size()) { _index = 0; }
 
-        if (fx.isActive()) {
-            fx.draw(dc);
-            return;
-        }
         dc.setColor(Theme.bg(), Theme.bg());
         dc.clear();
-        var page = p[_index];
+        if (!drawSlide(dc)) {
+            drawPage(dc, p[_index]);
+        }
+        drawPageIndicator(dc, p.size());
+
+        var fx = getApp().fx;
+        if (fx.isActive()) {
+            fx.draw(dc);    // on top of the data page
+        }
+    }
+
+    // One frame of the page slide; false when no slide is running.
+    private function drawSlide(dc as Dc) as Boolean {
+        var a = _slideFrom;
+        var b = _slideTo;
+        if (a == null || b == null) { return false; }
+        var t = (System.getTimer() - _slideStart).toFloat() / SLIDE_MS;
+        if (t >= 1.0 || a.get() == null || b.get() == null) {
+            _slideFrom = null;
+            _slideTo = null;
+            return false;
+        }
+        var e = 1.0 - (1.0 - t) * (1.0 - t) * (1.0 - t);   // ease-out
+        var h = dc.getHeight();
+        var shift = (h * e).toNumber();
+        if (_slideDir > 0) {
+            dc.drawBitmap(0, -shift, a);
+            dc.drawBitmap(0, h - shift, b);
+        } else {
+            dc.drawBitmap(0, shift, a);
+            dc.drawBitmap(0, shift - h, b);
+        }
+        return true;
+    }
+
+    private function drawPage(dc as Dc, page as Number) as Void {
         if (page == PAGE_DATA1) {
             drawDataScreen(dc, 0);
         } else if (page == PAGE_DATA2) {
@@ -111,56 +166,6 @@ class ESkateView extends WatchUi.View {
         } else {
             drawDiagnostics(dc);
         }
-        drawStatus(dc);
-        drawPageIndicator(dc, p.size());
-        drawStartHint(dc);
-    }
-
-    // Button hint layouts exist only on watches with Garmin's personality
-    // library; monkey.jungle picks one of these two per device.
-    (:hints)
-    private function loadHints(dc as Dc) as Void {
-        _hintStart = Rez.Layouts.HintStart(dc);
-        _hintStop = Rez.Layouts.HintStop(dc);
-    }
-
-    (:noHints)
-    private function loadHints(dc as Dc) as Void {
-    }
-
-    // Native button hint next to START: green = START begins the ride,
-    // red = START stops it.
-    private function drawStartHint(dc as Dc) as Void {
-        var hint = _ride.isRecording() ? _hintStop : _hintStart;
-        if (hint == null) { return; }
-        for (var i = 0; i < hint.size(); i++) {
-            hint[i].draw(dc);
-        }
-    }
-
-    // Like native activities: no status while recording; before the start
-    // a small "GPS" / "READY" chip at the top, "PAUSED" while paused.
-    private function drawStatus(dc as Dc) as Void {
-        if (_ride.isRecording()) { return; }
-        var label;
-        var color;
-        if (!_ride.gpsReady()) {
-            label = _s[:gps]; color = Theme.warn();
-        } else if (_ride.hasSession()) {
-            label = _s[:paused]; color = Theme.bad();
-        } else {
-            label = _s[:ready]; color = Theme.good();
-        }
-        if (label == null) { return; }
-        var w = dc.getWidth();
-        var font = Graphics.FONT_XTINY;
-        var tw = dc.getTextWidthInPixels(label, font) + 16;
-        var th = dc.getFontHeight(font);
-        var y = dc.getHeight() * 0.035;
-        dc.setColor(color, Graphics.COLOR_TRANSPARENT);
-        dc.fillRoundedRectangle((w - tw) / 2, y, tw, th, th / 2);
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, y + th / 2, font, label, Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
     private function drawDataScreen(dc as Dc, screen as Number) as Void {
@@ -205,15 +210,10 @@ class ESkateView extends WatchUi.View {
     private function drawField(dc as Dc, id as Number, x as Numeric, labelY as Numeric, valueY as Numeric,
                                maxW as Numeric, maxH as Numeric) as Void {
         var v = Fields.value(id, _ride, _board);
-        text(dc, x, labelY, Graphics.FONT_XTINY, Theme.label(), label(id, v));
+        text(dc, x, labelY, Graphics.FONT_XTINY, Theme.label(), Fields.LABELS[id]);
         var str = valueText(v);
         var font = fitFont(dc, str, maxW, maxH);
         text(dc, x, valueY, font, valueColor(id), str);
-    }
-
-    private function label(id as Number, v as Array<String>) as String {
-        var unit = v[1];
-        return (unit.equals("") || unit.equals("%")) ? Fields.LABELS[id] : Fields.LABELS[id] + " " + unit;
     }
 
     private function valueText(v as Array<String>) as String {

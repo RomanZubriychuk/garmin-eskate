@@ -1,0 +1,12 @@
+<resources>
+    <fitContributions>
+        <fitField id="0" displayInChart="true" sortOrder="0" precision="0"
+                  chartTitle="@Strings.FitBattery" dataLabel="@Strings.FitBattery"
+                  unitLabel="@Strings.UnitPercent" fillColor="#2E9E44" />
+        <fitField id="1" displayInChart="true" sortOrder="1" precision="1"
+                  chartTitle="@Strings.FitVoltage" dataLabel="@Strings.FitVoltage"
+                  unitLabel="@Strings.UnitVolt" fillColor="#E0A000" />
+        <fitField id="2" displayInActivitySummary="true" sortOrder="2" precision="0"
+                  dataLabel="@Strings.FitBattUsed" unitLabel="@Strings.UnitPercent" />
+    </fitContributions>
+</resources>

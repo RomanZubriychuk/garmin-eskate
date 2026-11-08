@@ -58,7 +58,7 @@ class SettingsMenu {
 
 
     // ---- data screens ----
-    private function openScreens() as Void {
+    function openScreens() as Void {
         var m = new WatchUi.Menu2({ :title => Rez.Strings.MenuDataScreens });
         for (var s = 0; s < Config.SCREEN_COUNT; s++) {
             m.addItem(new WatchUi.MenuItem("Screen " + (s + 1).format("%d"), screenSummary(s), s, {}));
@@ -115,7 +115,7 @@ class SettingsMenu {
     }
 
     // ---- alerts ----
-    private function openAlerts() as Void {
+    function openAlerts() as Void {
         var m = new WatchUi.Menu2({ :title => Rez.Strings.MenuAlerts });
         _speedItem = new WatchUi.MenuItem(Rez.Strings.MenuSpeedAlert, speedText(), :speed, {});
         m.addItem(_speedItem as WatchUi.MenuItem);
@@ -145,7 +145,7 @@ class SettingsMenu {
     }
 
     // ---- board ----
-    private function openBoard() as Void {
+    function openBoard() as Void {
         var m = new WatchUi.Menu2({ :title => Rez.Strings.MenuBoard });
         m.addItem(new WatchUi.ToggleMenuItem(Rez.Strings.MenuBoardLink, null, "boardEnabled", Config.flag("boardEnabled"), {}));
         m.addItem(new WatchUi.ToggleMenuItem(Rez.Strings.MenuBoardPage, null, "showBoardPage", Config.flag("showBoardPage"), {}));
@@ -177,7 +177,7 @@ class SettingsMenu {
         if (item != null) { item.setSubLabel(text); }
     }
 
-    private function screensSummary() as String {
+    function screensSummary() as String {
         return Config.screenUsed(1) ? "2 screens" : "1 screen";
     }
 
@@ -189,11 +189,11 @@ class SettingsMenu {
         return t == Theme.LIGHT ? "Light" : (t == Theme.DARK ? "Dark" : "Auto");
     }
 
-    private function onOff(on as Boolean) as String {
+    function onOff(on as Boolean) as String {
         return on ? "On" : "Off";
     }
 
-    private function speedText() as String {
+    function speedText() as String {
         return speedLabel(Config.number("speedAlertKmh", 0));
     }
 

@@ -10,11 +10,15 @@ import Toybox.System;
 // Wraps the FIT activity recording plus live GPS data.
 class RideSession {
     private var _session as ActivityRecording.Session?;
+    // Board data written into the activity file, shown as graphs and
+    // summary values in Garmin Connect (see resources/fit/fit.xml).
     private var _batteryField as FitContributor.Field?;
+    private var _voltageField as FitContributor.Field?;
+    private var _battUsedField as FitContributor.Field?;
+    private var _battAtStart as Number? = null;
     private var _speed as Float = 0.0;              // m/s, live from GPS
     private var _gpsQuality as Number = Position.QUALITY_NOT_AVAILABLE;
     private var _lastAlertMs as Number = 0;
-    var lapCount as Number = 1;
     private var _speedLimitKmh as Number = 0;    // cached setting, 0 = off
 
     function initialize() {
@@ -46,6 +50,11 @@ class RideSession {
             });
             _batteryField = s.createField("board_battery", 0, FitContributor.DATA_TYPE_UINT8,
                 { :mesgType => FitContributor.MESG_TYPE_RECORD, :units => "%" });
+            _voltageField = s.createField("board_voltage", 1, FitContributor.DATA_TYPE_FLOAT,
+                { :mesgType => FitContributor.MESG_TYPE_RECORD, :units => "V" });
+            _battUsedField = s.createField("board_battery_used", 2, FitContributor.DATA_TYPE_UINT8,
+                { :mesgType => FitContributor.MESG_TYPE_SESSION, :units => "%" });
+            _battAtStart = null;
             _session = s;
         }
         (_session as ActivityRecording.Session).start();
@@ -62,16 +71,6 @@ class RideSession {
         }
     }
 
-    function lap() as Void {
-        var s = _session;
-        if (s != null && s.isRecording()) {
-            s.addLap();
-            lapCount++;
-            vibe(1);
-            tone(Attention.TONE_LAP);
-        }
-    }
-
     function save() as Void {
         var s = _session;
         if (s != null) {
@@ -79,10 +78,16 @@ class RideSession {
             s.save();
             vibe(1);
             tone(Attention.TONE_SUCCESS);
-            lapCount = 1;
-            _session = null;
-            _batteryField = null;
+            clearFields();
         }
+    }
+
+    private function clearFields() as Void {
+        _session = null;
+        _batteryField = null;
+        _voltageField = null;
+        _battUsedField = null;
+        _battAtStart = null;
     }
 
     function discard() as Void {
@@ -90,17 +95,25 @@ class RideSession {
         if (s != null) {
             if (s.isRecording()) { s.stop(); }
             s.discard();
-            lapCount = 1;
-            _session = null;
-            _batteryField = null;
+            clearFields();
         }
     }
 
-    // Called by BoardLink when a battery value is decoded.
-    function setBoardBattery(percent as Number) as Void {
+    // Called by BoardLink after each packet with the latest decoded values
+    // (null = not known). Battery used = first reading of the ride - latest.
+    function setBoardData(percent as Number?, volts as Float?) as Void {
+        if (!isRecording()) { return; }
         var f = _batteryField;
-        if (f != null && isRecording()) {
+        if (f != null && percent != null) {
             f.setData(percent);
+            if (_battAtStart == null) { _battAtStart = percent; }
+            var used = (_battAtStart as Number) - percent;
+            var u = _battUsedField;
+            if (u != null) { u.setData(used > 0 ? used : 0); }
+        }
+        var v = _voltageField;
+        if (v != null && volts != null) {
+            v.setData(volts);
         }
     }
 
@@ -110,6 +123,15 @@ class RideSession {
         var spd = info.speed;
         _speed = (spd != null) ? spd.toFloat() : 0.0;
         checkSpeedAlert();
+    }
+
+    // 0.0 (no fix) .. 1.0 (good fix), for the pre-start GPS bar.
+    function gpsLevel() as Float {
+        if (_gpsQuality >= Position.QUALITY_GOOD) { return 1.0; }
+        if (_gpsQuality == Position.QUALITY_USABLE) { return 0.75; }
+        if (_gpsQuality == Position.QUALITY_POOR) { return 0.5; }
+        if (_gpsQuality == Position.QUALITY_LAST_KNOWN) { return 0.25; }
+        return 0.0;
     }
 
     function gpsReady() as Boolean {

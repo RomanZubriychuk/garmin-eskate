@@ -233,10 +233,7 @@ class BoardLink extends BluetoothLowEnergy.BleDelegate {
         packets++;
         lastPacketHex = toHex(value);
         BoardProtocol.parse(value, self);
-        var b = battery;
-        if (b != null) {
-            getApp().ride.setBoardBattery(b);
-        }
+        getApp().ride.setBoardData(battery, voltage);
     }
 
     private function toHex(bytes as ByteArray) as String {

@@ -15,7 +15,7 @@ the remote doesn't: recording the ride, distance, ride time and heart rate.
 | 3. Board | Bluetooth status, board name, battery, voltage (only when the board link is on) |
 | 4. Diagnostics | RSSI, discovered BLE services, raw packets (only when the board link is on) |
 
-- Records the ride to FIT (GPS track, speed, distance, heart rate, laps) → syncs to Garmin Connect.
+- Records the ride to FIT (GPS track, speed, distance, heart rate) → syncs to Garmin Connect.
 - Vibration alert when exceeding a configurable speed (setting, 0 = off); speed turns red.
 - km/h or mph, following the watch's unit settings.
 - Touch input is ignored so a ride can't be stopped accidentally.
@@ -39,7 +39,7 @@ Change them either:
 | Button | Action |
 |---|---|
 | START | start / pause (when paused: "Resume / Save / Discard" menu) |
-| BACK | new lap while recording; exit when not recording |
+| BACK | ignored while riding; pause menu when paused; exit before the start |
 | UP / DOWN | switch screens (swipe up / down on watches without these buttons) |
 | hold UP (MENU) | settings: Data Screens, Alerts, Board, About |
 
@@ -128,7 +128,7 @@ source/ESkateView.mc     screens
 source/Fields.mc         data field definitions and formatting
 source/Config.mc         data screen layout stored in settings
 source/SettingsMenu.mc   on-watch settings menu
-source/Feedback.mc       start/stop/lap/save animation
+source/Feedback.mc       start/stop animation
 source/Theme.mc          light/dark colors
 source/ESkateDelegate.mc buttons and stop menu
 ```

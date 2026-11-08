@@ -6,16 +6,21 @@ import Toybox.WatchUi;
 class ESkateApp extends Application.AppBase {
     var ride as RideSession;
     var board as BoardLink;
+    var fx as Feedback;
+    var ticker as Ticker;
 
     function initialize() {
         AppBase.initialize();
         ride = new RideSession();
         board = new BoardLink();
+        fx = new Feedback();
+        ticker = new Ticker();
     }
 
     function onStart(state as Dictionary?) as Void {
         Position.enableLocationEvents(Position.LOCATION_CONTINUOUS, method(:onPosition));
         applyBoardSetting();
+        ticker.update();
     }
 
     // Starts or stops the board link to match the "boardEnabled" setting.
@@ -34,6 +39,7 @@ class ESkateApp extends Application.AppBase {
     function onStop(state as Dictionary?) as Void {
         Position.enableLocationEvents(Position.LOCATION_DISABLE, method(:onPosition));
         board.stop();
+        ticker.stop();
     }
 
     // Settings edited in Garmin Connect on the phone.
@@ -51,8 +57,7 @@ class ESkateApp extends Application.AppBase {
     }
 
     function getInitialView() as [WatchUi.Views] or [WatchUi.Views, WatchUi.InputDelegates] {
-        var view = new ESkateView(ride, board);
-        return [view, new ESkateDelegate(view, ride)];
+        return preStart(ride);
     }
 }
 

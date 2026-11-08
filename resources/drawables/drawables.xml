@@ -1,3 +1,23 @@
 <drawables>
     <bitmap id="LauncherIcon" filename="launcher_icon.svg"/>
+    <!-- Icons from Google Material Icons (Apache 2.0), skateboard drawn to match.
+         Sizes are relative to the screen so they look the same on every watch. -->
+    <!-- pre-start status row: white = active, gray = not -->
+    <bitmap id="PhoneOn" filename="status_phone_on.svg" scaleX="6%" scaleY="6%" scaleRelativeTo="screen"/>
+    <bitmap id="PhoneOff" filename="status_phone_off.svg" scaleX="6%" scaleY="6%" scaleRelativeTo="screen"/>
+    <bitmap id="HrOn" filename="status_hr_on.svg" scaleX="6%" scaleY="6%" scaleRelativeTo="screen"/>
+    <bitmap id="HrOff" filename="status_hr_off.svg" scaleX="6%" scaleY="6%" scaleRelativeTo="screen"/>
+    <bitmap id="BoardOn" filename="status_board_on.svg" scaleX="6%" scaleY="6%" scaleRelativeTo="screen"/>
+    <bitmap id="BoardOff" filename="status_board_off.svg" scaleX="6%" scaleY="6%" scaleRelativeTo="screen"/>
+    <!-- pre-start list items: white = focused, light gray = not -->
+    <bitmap id="ItemScreensOn" filename="item_screens_on.svg" scaleX="9%" scaleY="9%" scaleRelativeTo="screen"/>
+    <bitmap id="ItemScreensDim" filename="item_screens_dim.svg" scaleX="9%" scaleY="9%" scaleRelativeTo="screen"/>
+    <bitmap id="ItemAlertsOn" filename="item_alerts_on.svg" scaleX="9%" scaleY="9%" scaleRelativeTo="screen"/>
+    <bitmap id="ItemAlertsDim" filename="item_alerts_dim.svg" scaleX="9%" scaleY="9%" scaleRelativeTo="screen"/>
+    <bitmap id="ItemBoardOn" filename="item_board_on.svg" scaleX="9%" scaleY="9%" scaleRelativeTo="screen"/>
+    <bitmap id="ItemBoardDim" filename="item_board_dim.svg" scaleX="9%" scaleY="9%" scaleRelativeTo="screen"/>
+    <!-- pause menu -->
+    <bitmap id="PauseResume" filename="pause_resume.svg" scaleX="13%" scaleY="13%" scaleRelativeTo="screen"/>
+    <bitmap id="PauseSave" filename="pause_save.svg" scaleX="13%" scaleY="13%" scaleRelativeTo="screen"/>
+    <bitmap id="PauseDiscard" filename="pause_discard.svg" scaleX="13%" scaleY="13%" scaleRelativeTo="screen"/>
 </drawables>

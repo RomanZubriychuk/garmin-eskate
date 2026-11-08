@@ -25,8 +25,9 @@ module Fields {
     const COUNT = 13;
 
     // Short labels drawn above the values.
-    const LABELS = ["", "Distance", "Time", "HR", "Speed", "Max", "Avg",
-                    "Board", "Board", "Watch", "Clock", "Calories", "Ascent"];
+    // Native-style labels: uppercase, no units.
+    const LABELS = ["", "DISTANCE", "TIMER", "HEART RATE", "SPEED", "MAX SPEED", "AVG SPEED",
+                    "BOARD BATT", "BOARD VOLT", "BATTERY", "TIME", "CALORIES", "ASCENT"];
 
     // Full names, used in the on-watch settings menu.
     function name(id as Number) as String {
