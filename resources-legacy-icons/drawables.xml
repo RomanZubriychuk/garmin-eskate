@@ -1,0 +1,10 @@
+<drawables>
+    <!-- Watches without Garmin's personality library: same ids, own icons.
+         (Toasts are not shown there; the toast ids only need to exist.) -->
+    <bitmap id="ToastCheck" filename="../resources/drawables/icon_resume.svg"/>
+    <bitmap id="ToastSave" filename="../resources/drawables/icon_resume.svg"/>
+    <bitmap id="ToastDiscard" filename="../resources/drawables/icon_resume.svg"/>
+    <bitmap id="MenuResume" filename="icon_resume.svg"/>
+    <bitmap id="MenuSave" filename="icon_save.svg"/>
+    <bitmap id="MenuDiscard" filename="icon_discard.svg"/>
+</drawables>

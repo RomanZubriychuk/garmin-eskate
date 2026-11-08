@@ -46,4 +46,8 @@
     <string id="SetS2Left">Screen 2: left field</string>
     <string id="SetS2Right">Screen 2: right field</string>
     <string id="SetS2Bottom">Screen 2: bottom field</string>
+    <string id="ToastStarted">Ride started</string>
+    <string id="ToastResumed">Ride resumed</string>
+    <string id="ToastSaved">Ride saved</string>
+    <string id="ToastDiscarded">Ride discarded</string>
 </strings>

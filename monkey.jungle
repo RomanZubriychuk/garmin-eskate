@@ -1,1 +1,25 @@
 project.manifest = manifest.xml
+
+# Garmin system icons + native button hints (personality library)
+base.resourcePath = resources;resources-system-icons;resources-hints
+base.excludeAnnotations = noHints
+
+# Older watches without the personality library: own icons, no button hint
+fr245.resourcePath = resources;resources-legacy-icons
+fr245.excludeAnnotations = hints
+fr245m.resourcePath = resources;resources-legacy-icons
+fr245m.excludeAnnotations = hints
+fr745.resourcePath = resources;resources-legacy-icons
+fr745.excludeAnnotations = hints
+fr945.resourcePath = resources;resources-legacy-icons
+fr945.excludeAnnotations = hints
+vivoactive4.resourcePath = resources;resources-legacy-icons
+vivoactive4.excludeAnnotations = hints
+vivoactive4s.resourcePath = resources;resources-legacy-icons
+vivoactive4s.excludeAnnotations = hints
+
+# Monochrome Instinct: system icons, but no colored button hint
+instinct2.resourcePath = resources;resources-system-icons
+instinct2.excludeAnnotations = hints
+instinct3solar45mm.resourcePath = resources;resources-system-icons
+instinct3solar45mm.excludeAnnotations = hints

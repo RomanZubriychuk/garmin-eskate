@@ -1,0 +1,9 @@
+<layouts>
+    <!-- Native hint on the START button: green before / red during the ride -->
+    <layout id="HintStart">
+        <bitmap id="hintStart" personality="system_icon_positive__hint_button_right_top system_loc__hint_button_right_top"/>
+    </layout>
+    <layout id="HintStop">
+        <bitmap id="hintStop" personality="system_icon_destructive__hint_button_right_top system_loc__hint_button_right_top"/>
+    </layout>
+</layouts>

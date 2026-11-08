@@ -1,6 +1,3 @@
 <drawables>
     <bitmap id="LauncherIcon" filename="launcher_icon.svg"/>
-    <bitmap id="IconResume" filename="icon_resume.svg"/>
-    <bitmap id="IconSave" filename="icon_save.svg"/>
-    <bitmap id="IconDiscard" filename="icon_discard.svg"/>
 </drawables>

@@ -30,7 +30,7 @@ class ESkateDelegate extends WatchUi.BehaviorDelegate {
             showStopMenu();
         } else {
             _ride.start();
-            _view.flash(ESkateView.FLASH_START);
+            Feedback.toast(WatchUi.loadResource(Rez.Strings.ToastStarted) as String, Rez.Drawables.ToastCheck);
         }
         WatchUi.requestUpdate();
         return true;
@@ -39,7 +39,7 @@ class ESkateDelegate extends WatchUi.BehaviorDelegate {
     function onBack() as Boolean {
         if (_ride.isRecording()) {
             _ride.lap();
-            _view.flash(ESkateView.FLASH_LAP);
+            Feedback.toast("Lap " + _ride.lapCount.format("%d"), null);
             return true;
         }
         if (_ride.hasSession()) {
@@ -67,37 +67,41 @@ class ESkateDelegate extends WatchUi.BehaviorDelegate {
     private function showStopMenu() as Void {
         var menu = new WatchUi.Menu2({ :title => Rez.Strings.MenuTitle });
         menu.addItem(new WatchUi.IconMenuItem(Rez.Strings.Resume, null, :resume,
-                     WatchUi.loadResource(Rez.Drawables.IconResume) as Graphics.BitmapType, {}));
+                     menuIcon(Rez.Drawables.MenuResume), {}));
         menu.addItem(new WatchUi.IconMenuItem(Rez.Strings.Save, null, :save,
-                     WatchUi.loadResource(Rez.Drawables.IconSave) as Graphics.BitmapType, {}));
+                     menuIcon(Rez.Drawables.MenuSave), {}));
         menu.addItem(new WatchUi.IconMenuItem(Rez.Strings.Discard, null, :discard,
-                     WatchUi.loadResource(Rez.Drawables.IconDiscard) as Graphics.BitmapType, {}));
-        WatchUi.pushView(menu, new StopMenuDelegate(_ride, _view), WatchUi.SLIDE_UP);
+                     menuIcon(Rez.Drawables.MenuDiscard), {}));
+        WatchUi.pushView(menu, new StopMenuDelegate(_ride), WatchUi.SLIDE_UP);
+    }
+
+    // Menu icons are passed as Drawables: passing a raw BitmapResource
+    // crashed the menu on the Fenix 8 simulator ("Failed invoking <symbol>").
+    private function menuIcon(id as ResourceId) as WatchUi.Drawable {
+        return new WatchUi.Bitmap({ :rezId => id });
     }
 }
 
 class StopMenuDelegate extends WatchUi.Menu2InputDelegate {
     private var _ride as RideSession;
-    private var _view as ESkateView;
 
-    function initialize(ride as RideSession, view as ESkateView) {
+    function initialize(ride as RideSession) {
         Menu2InputDelegate.initialize();
         _ride = ride;
-        _view = view;
     }
 
     function onSelect(item as WatchUi.MenuItem) as Void {
         var id = item.getId();
+        WatchUi.popView(WatchUi.SLIDE_DOWN);
         if (id == :resume) {
             _ride.start();
-            _view.flash(ESkateView.FLASH_START);
+            Feedback.toast(WatchUi.loadResource(Rez.Strings.ToastResumed) as String, Rez.Drawables.ToastCheck);
         } else if (id == :save) {
             _ride.save();
-            _view.flash(ESkateView.FLASH_SAVED);
+            Feedback.toast(WatchUi.loadResource(Rez.Strings.ToastSaved) as String, Rez.Drawables.ToastSave);
         } else if (id == :discard) {
             _ride.discard();
-            _view.flash(ESkateView.FLASH_DISCARDED);
+            Feedback.toast(WatchUi.loadResource(Rez.Strings.ToastDiscarded) as String, Rez.Drawables.ToastDiscard);
         }
-        WatchUi.popView(WatchUi.SLIDE_DOWN);
     }
 }

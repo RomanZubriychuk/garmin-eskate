@@ -16,23 +16,12 @@ class ESkateView extends WatchUi.View {
         PAGE_DIAG
     }
 
-    enum {
-        FLASH_NONE,
-        FLASH_START,
-        FLASH_LAP,
-        FLASH_SAVED,
-        FLASH_DISCARDED
-    }
-    const FLASH_MS = 1300;
-    const FLASH_GROW_MS = 300;
-
     private var _index as Number = 0;
     private var _ride as RideSession;
     private var _board as BoardLink;
     private var _timer as Timer.Timer?;
-    private var _flashTimer as Timer.Timer?;
-    private var _flashKind as Number = FLASH_NONE;
-    private var _flashStart as Number = 0;
+    private var _hintStart as Array<WatchUi.Drawable>? = null;
+    private var _hintStop as Array<WatchUi.Drawable>? = null;
     private var _s as Dictionary<Symbol, String> = {} as Dictionary<Symbol, String>;
 
     function initialize(ride as RideSession, board as BoardLink) {
@@ -49,6 +38,7 @@ class ESkateView extends WatchUi.View {
             :connecting => Rez.Strings.BoardConnecting, :connected => Rez.Strings.BoardConnected,
             :nodata => Rez.Strings.NoData, :packets => Rez.Strings.Packets, :gps => Rez.Strings.GpsWait
         };
+        loadHints(dc);
         var keys = ids.keys();
         for (var i = 0; i < keys.size(); i++) {
             _s[keys[i] as Symbol] = WatchUi.loadResource(ids[keys[i]] as ResourceId) as String;
@@ -65,35 +55,8 @@ class ESkateView extends WatchUi.View {
         var t = _timer;
         if (t != null) { t.stop(); }
         _timer = null;
-        stopFlash();
     }
 
-    // Short animated confirmation, like the native "Timer Started" screen.
-    // Runs a fast timer only while the animation is on screen.
-    function flash(kind as Number) as Void {
-        _flashKind = kind;
-        _flashStart = System.getTimer();
-        if (_flashTimer == null) {
-            var t = new Timer.Timer();
-            t.start(method(:onFlashTick), 50, true);
-            _flashTimer = t;
-        }
-        WatchUi.requestUpdate();
-    }
-
-    function onFlashTick() as Void {
-        if (System.getTimer() - _flashStart > FLASH_MS) {
-            stopFlash();
-        }
-        WatchUi.requestUpdate();
-    }
-
-    private function stopFlash() as Void {
-        var t = _flashTimer;
-        if (t != null) { t.stop(); }
-        _flashTimer = null;
-        _flashKind = FLASH_NONE;
-    }
 
     function onTick() as Void {
         WatchUi.requestUpdate();
@@ -125,10 +88,6 @@ class ESkateView extends WatchUi.View {
 
         dc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
         dc.clear();
-        if (_flashKind != FLASH_NONE) {
-            drawFlash(dc);
-            return;
-        }
         drawHeader(dc);
         var page = p[_index];
         if (page == PAGE_DATA1) {
@@ -144,63 +103,26 @@ class ESkateView extends WatchUi.View {
         drawStartHint(dc);
     }
 
-    // Colored arc next to the START button (upper right on round watches):
-    // green = START begins the ride, red = START stops it.
-    private function drawStartHint(dc as Dc) as Void {
-        if (System.getDeviceSettings().screenShape != System.SCREEN_SHAPE_ROUND) {
-            return;
-        }
-        var w = dc.getWidth();
-        var pen = w / 40 > 4 ? w / 40 : 4;
-        dc.setPenWidth(pen);
-        dc.setColor(_ride.isRecording() ? Graphics.COLOR_RED : Graphics.COLOR_GREEN, Graphics.COLOR_TRANSPARENT);
-        dc.drawArc(w / 2, dc.getHeight() / 2, w / 2 - pen / 2 - 1, Graphics.ARC_COUNTER_CLOCKWISE, 22, 38);
-        dc.setPenWidth(1);
+    // Button hint layouts exist only on watches with Garmin's personality
+    // library; monkey.jungle picks one of these two per device.
+    (:hints)
+    private function loadHints(dc as Dc) as Void {
+        _hintStart = Rez.Layouts.HintStart(dc);
+        _hintStop = Rez.Layouts.HintStop(dc);
     }
 
-    private function drawFlash(dc as Dc) as Void {
-        var w = dc.getWidth();
-        var h = dc.getHeight();
-        var cx = w / 2;
-        var cy = h * 0.44;
-        var t = System.getTimer() - _flashStart;
-        var k = t >= FLASH_GROW_MS ? 1.0 : 0.4 + 0.6 * t / FLASH_GROW_MS.toFloat();
-        var r = (w * 0.22 * k).toNumber();
+    (:noHints)
+    private function loadHints(dc as Dc) as Void {
+    }
 
-        var color = Graphics.COLOR_GREEN;
-        var label = "Started";
-        if (_flashKind == FLASH_LAP) {
-            color = Graphics.COLOR_BLUE;
-            label = "Lap " + _ride.lapCount.format("%d");
-        } else if (_flashKind == FLASH_SAVED) {
-            label = "Saved";
-        } else if (_flashKind == FLASH_DISCARDED) {
-            color = Graphics.COLOR_RED;
-            label = "Discarded";
-        }
-
-        dc.setColor(color, Graphics.COLOR_TRANSPARENT);
-        dc.fillCircle(cx, cy, r);
-        dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        var g = r * 0.45;
-        if (_flashKind == FLASH_START) {
-            dc.fillPolygon([[cx - g * 0.6, cy - g], [cx - g * 0.6, cy + g], [cx + g, cy]]);
-        } else if (_flashKind == FLASH_LAP) {
-            dc.drawText(cx, cy, Graphics.FONT_NUMBER_MEDIUM, _ride.lapCount.format("%d"),
-                        Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        } else if (_flashKind == FLASH_SAVED) {
-            dc.setPenWidth((r / 6).toNumber());
-            dc.drawLine(cx - g, cy, cx - g * 0.2, cy + g * 0.7);
-            dc.drawLine(cx - g * 0.2, cy + g * 0.7, cx + g, cy - g * 0.6);
-        } else {
-            dc.setPenWidth((r / 6).toNumber());
-            dc.drawLine(cx - g * 0.8, cy - g * 0.8, cx + g * 0.8, cy + g * 0.8);
-            dc.drawLine(cx + g * 0.8, cy - g * 0.8, cx - g * 0.8, cy + g * 0.8);
-        }
-        dc.setPenWidth(1);
-        if (t >= FLASH_GROW_MS) {
-            text(dc, cx, cy + w * 0.22 + dc.getFontHeight(Graphics.FONT_MEDIUM) * 0.7,
-                 Graphics.FONT_MEDIUM, Graphics.COLOR_WHITE, label);
+    // Native button hint next to START: green = START begins the ride,
+    // red = START stops it. Garmin's personality library places it on the
+    // right button for each watch; devices without it get no hint.
+    private function drawStartHint(dc as Dc) as Void {
+        var hint = _ride.isRecording() ? _hintStop : _hintStart;
+        if (hint == null) { return; }
+        for (var i = 0; i < hint.size(); i++) {
+            hint[i].draw(dc);
         }
     }
 
