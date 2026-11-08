@@ -68,7 +68,7 @@ Turn on **Connect to Board** (hold UP → *Board*, or in Garmin Connect settings
 the app then finds the board by name and connects by itself.
 
 Exway does not publish its Bluetooth protocol, so **board data is not available yet**.
-The app can find a device by name (setting *Board name*, default `Exway`), connect, and
+The app can find a device by name (setting *Board Bluetooth name contains*, default `Exway`), connect, and
 subscribe to notifications on common "UART-over-BLE" services (`FFE0/FFE1`, Nordic UART,
 `FFF0/FFF4`), but packet decoding (`source/BoardProtocol.mc`) is a stub — battery shows `--`,
 and the Diagnostics screen shows the raw data.
