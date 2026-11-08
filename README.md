@@ -10,18 +10,24 @@ the remote doesn't: recording the ride, distance, ride time and heart rate.
 
 | Screen | Default contents |
 |---|---|
+| Pre-start | clock, GPS bar, phone / heart rate / board status, START hint; settings list below |
 | 1. Data screen 1 | **distance** (large), ride time, heart rate, speed |
 | 2. Data screen 2 | **speed** (large), board battery, distance, max speed |
-| 3. Board | Bluetooth status, board name, battery, voltage (only when the board link is on) |
-| 4. Diagnostics | RSSI, discovered BLE services, raw packets (only when the board link is on) |
+| 3. Map | the watch's own map with the ride track (watches with maps, once GPS has a fix) |
+| 4. Board | Bluetooth status, board name, battery, voltage (only when the board link is on) |
+| 5. Diagnostics | RSSI, discovered BLE services, raw packets (only when the board link is on) |
 
 - Records the ride to FIT (GPS track, speed, distance, heart rate) → syncs to Garmin Connect.
+  Board battery, voltage and battery used are written as extra FIT fields
+  (graphs and summary in Garmin Connect) once the board link delivers data.
+- Beep and buzz when GPS becomes ready, before or during the ride.
 - Vibration alert when exceeding a configurable speed (setting, 0 = off); speed turns red.
 - km/h or mph, following the watch's unit settings.
 - Touch input is ignored so a ride can't be stopped accidentally.
-- Looks like native Garmin activities: 4-field data pages with divider lines, light
-  background on MIP watches and dark on AMOLED (Data Screens → Background),
-  start/stop animation with a sweeping border, system tones and button hints.
+- Looks like native Garmin activities: pre-start page, 4-field data pages with divider
+  lines, smooth page slides, the native pause menu (Resume / Save / Discard with the red
+  ring), Saving / Discarding screens, light background on MIP watches and dark on AMOLED
+  (Data Screens → Background), system tones and button hints.
 
 ### Configurable data fields
 
@@ -46,6 +52,8 @@ Change them either:
 ## Battery use
 
 - The screen is redrawn once per second — not on every GPS fix or Bluetooth packet.
+  Animations run at 20 fps only while something actually moves; one app timer drives everything.
+- The map page is left to the watch: the app doesn't redraw it.
 - Settings are cached in memory and reread only when they change.
 - The board link is **off by default**: until the Exway protocol is decoded it gives no
   useful data, and Bluetooth scanning is the biggest drain after GPS.
@@ -59,23 +67,36 @@ No pairing in the watch's Sensors menu is needed (it only supports standard sens
 Turn on **Connect to Board** (hold UP → *Board*, or in Garmin Connect settings);
 the app then finds the board by name and connects by itself.
 
-Exway does not publish its Bluetooth protocol. The app already finds the board by name
-(by default, the name contains `Exway`), connects, and subscribes to notifications on common
-"UART-over-BLE" services (`FFE0/FFE1`, Nordic UART, `FFF0/FFF4`), but **packet decoding is
-not implemented yet** — battery shows `--`, and the Diagnostics screen shows the raw data.
+Exway does not publish its Bluetooth protocol, so **board data is not available yet**.
+The app can find a device by name (setting *Board name*, default `Exway`), connect, and
+subscribe to notifications on common "UART-over-BLE" services (`FFE0/FFE1`, Nordic UART,
+`FFF0/FFF4`), but packet decoding (`source/BoardProtocol.mc`) is a stub — battery shows `--`,
+and the Diagnostics screen shows the raw data.
 There is no board control (throttle/brake), and there won't be — it's unsafe.
 
-To add battery/voltage/speed from the controller, a protocol capture is needed:
+What is known so far:
 
-1. Android → Developer options → enable **Bluetooth HCI snoop log**.
-2. Ride/connect with the official Exway app for a couple of minutes,
-   noting the battery percentage shown.
-3. Export the log (`adb bugreport`) or capture data with **nRF Connect**
-   (service and characteristic UUIDs + sample packets).
-4. Implement the format in `source/BoardProtocol.mc` (a stub is there).
+- The **ExSkate** phone app talks Bluetooth LE to the **Rexus remote**, not to the board
+  directly. The remote shows up in ExSkate as e.g. `Rexus(Atlas Pro)…` and is paired to
+  one phone (remote settings mode → Return).
+- The remote is not visible in a generic BLE scan (nRF Connect), so the services and the
+  packet format have to be captured from a session with ExSkate.
 
-Note: the watch and the phone usually can't both hold a connection to the board —
-close the Exway app on your phone while riding.
+How to capture it (contributions welcome):
+
+- **iPhone**: install the Bluetooth logging profile from
+  [Apple's profiles and logs page](https://developer.apple.com/bug-reporting/profiles-and-logs/),
+  reboot, use ExSkate for a couple of minutes (note the values it shows), then take a
+  sysdiagnose (tap both volume buttons + side button briefly). The `.pklg` file inside
+  opens in Wireshark / PacketLogger.
+- **Android**: Developer options → **Bluetooth HCI snoop log**, use ExSkate, then
+  `adb bugreport` and open `btsnoop_hci.log` in Wireshark.
+
+Then implement the format in `source/BoardProtocol.mc` and, if needed, the service UUIDs
+in `source/BoardLink.mc`.
+
+Note: the watch and the phone probably can't both hold a connection to the remote —
+close ExSkate on your phone while riding.
 
 ## Supported watches
 
@@ -124,11 +145,20 @@ source/ESkateApp.mc      entry point, GPS
 source/RideSession.mc    activity recording, vibration alerts
 source/BoardLink.mc      board discovery and BLE connection
 source/BoardProtocol.mc  board packet decoding (stub)
-source/ESkateView.mc     screens
+source/PreStartView.mc   pre-start page
+source/ScrollPage.mc     native-style scrolling list
+source/ESkateView.mc     data pages and page slides
+source/MapPage.mc        map page
+source/Ticker.mc         single app timer, redraw pacing
 source/Fields.mc         data field definitions and formatting
 source/Config.mc         data screen layout stored in settings
 source/SettingsMenu.mc   on-watch settings menu
 source/Feedback.mc       start/stop animation
 source/Theme.mc          light/dark colors
-source/ESkateDelegate.mc buttons and stop menu
+source/ESkateDelegate.mc buttons, pause menu, save / discard screens
+resources/fit/fit.xml    board FIT fields shown in Garmin Connect
 ```
+
+## License
+
+[MIT](LICENSE)
