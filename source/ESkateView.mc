@@ -1,6 +1,7 @@
 import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.Math;
+import Toybox.Position;
 import Toybox.System;
 import Toybox.WatchUi;
 
@@ -18,13 +19,15 @@ class ESkateView extends WatchUi.View {
         PAGE_DATA1,
         PAGE_DATA2,
         PAGE_BOARD,
-        PAGE_DIAG
+        PAGE_DIAG,
+        PAGE_MAP
     }
 
     const ROW1 = 0.36;   // top field ends here (fraction of height)
     const ROW2 = 0.68;   // middle row ends here
     const PAGE_HINT_MS = 2000;
     const SLIDE_MS = 280;
+    const ENTER_MS = 200;    // start: data page comes in fast, like native
 
     private var _index as Number;
     private var _pageChangedAt as Number = -100000;
@@ -33,7 +36,7 @@ class ESkateView extends WatchUi.View {
     private var _s as Dictionary<Symbol, String> = {} as Dictionary<Symbol, String>;
     private var _slideFrom as Graphics.BufferedBitmapReference? = null;
     private var _slideTo as Graphics.BufferedBitmapReference? = null;
-    private var _slideDir as Number = 0;
+    private var _slideDir as Number = 0;     // 1 up, -1 down, 2 in from the right
     private var _slideStart as Number = 0;
 
     function initialize(ride as RideSession, board as BoardLink, index as Number, pageChanged as Boolean) {
@@ -68,10 +71,11 @@ class ESkateView extends WatchUi.View {
     }
 
     // Pages are rebuilt from settings every time, so changes apply immediately.
-    private function pages() as Array<Number> {
+    static function pages() as Array<Number> {
         var p = [] as Array<Number>;
         if (Config.screenUsed(0)) { p.add(PAGE_DATA1); }
         if (Config.screenUsed(1)) { p.add(PAGE_DATA2); }
+        if (Config.flag("showMap") && (WatchUi has :MapTrackView)) { p.add(PAGE_MAP); }
         if (Config.flag("boardEnabled")) {
             if (Config.flag("showBoardPage")) { p.add(PAGE_BOARD); }
             if (Config.flag("showDiagnostics")) { p.add(PAGE_DIAG); }
@@ -88,6 +92,11 @@ class ESkateView extends WatchUi.View {
         if (_index >= n) { _index = 0; }
         var from = _index;
         var to = ((from + dir) % n + n) % n;
+        if (p[to] == PAGE_MAP && hasPosition()) {
+            _pageChangedAt = System.getTimer();
+            MapPage.show(_ride, to, (Graphics has :createBufferedBitmap) ? render(p[from]) : null, dir);
+            return;
+        }
         _slideFrom = null;
         _slideTo = null;
         if (Graphics has :createBufferedBitmap) {
@@ -100,6 +109,15 @@ class ESkateView extends WatchUi.View {
         _pageChangedAt = _slideStart;
         getApp().ticker.fastFor(SLIDE_MS + 80);
         WatchUi.requestUpdate();
+    }
+
+    // Slides this page in from the right over a picture of the previous view.
+    function enterFrom(snapshot as Graphics.BufferedBitmapReference?) as Void {
+        if (snapshot == null) { return; }
+        _slideFrom = snapshot;
+        _slideTo = null;          // drawn on the first frame, after onLayout
+        _slideDir = 2;
+        _slideStart = -1;
     }
 
     private function render(page as Number) as Graphics.BufferedBitmapReference? {
@@ -121,6 +139,10 @@ class ESkateView extends WatchUi.View {
 
         dc.setColor(Theme.bg(), Theme.bg());
         dc.clear();
+        if (p[_index] == PAGE_MAP && _slideFrom == null && !_mapPending && hasPosition()) {
+            _mapPending = true;      // GPS found: show the real map (not from inside onUpdate)
+            getApp().ticker.after(10, method(:openMap));
+        }
         if (!drawSlide(dc)) {
             drawPage(dc, p[_index]);
         }
@@ -135,9 +157,16 @@ class ESkateView extends WatchUi.View {
     // One frame of the page slide; false when no slide is running.
     private function drawSlide(dc as Dc) as Boolean {
         var a = _slideFrom;
+        if (a == null) { return false; }
+        if (_slideDir == 2 && _slideTo == null) {
+            var p = pages();
+            _slideTo = render(p[_index < p.size() ? _index : 0]);
+            _slideStart = System.getTimer();
+            getApp().ticker.fastFor(SLIDE_MS + 80);
+        }
         var b = _slideTo;
-        if (a == null || b == null) { return false; }
-        var t = (System.getTimer() - _slideStart).toFloat() / SLIDE_MS;
+        if (b == null) { _slideFrom = null; return false; }
+        var t = (System.getTimer() - _slideStart).toFloat() / (_slideDir == 2 ? ENTER_MS : SLIDE_MS);
         if (t >= 1.0 || a.get() == null || b.get() == null) {
             _slideFrom = null;
             _slideTo = null;
@@ -146,7 +175,11 @@ class ESkateView extends WatchUi.View {
         var e = 1.0 - (1.0 - t) * (1.0 - t) * (1.0 - t);   // ease-out
         var h = dc.getHeight();
         var shift = (h * e).toNumber();
-        if (_slideDir > 0) {
+        if (_slideDir == 2) {
+            var sw = (dc.getWidth() * e).toNumber();
+            dc.drawBitmap(-sw, 0, a);
+            dc.drawBitmap(dc.getWidth() - sw, 0, b);
+        } else if (_slideDir > 0) {
             dc.drawBitmap(0, -shift, a);
             dc.drawBitmap(0, h - shift, b);
         } else {
@@ -156,8 +189,24 @@ class ESkateView extends WatchUi.View {
         return true;
     }
 
+    private var _mapPending as Boolean = false;
+
+    function openMap() as Void {
+        MapPage.show(_ride, _index, null, 1);
+    }
+
+    // The system map can only be shown once the watch knows where it is;
+    // until then this view stands in for it ("Waiting for GPS").
+    private function hasPosition() as Boolean {
+        return Position.getInfo().position != null;
+    }
+
     private function drawPage(dc as Dc, page as Number) as Void {
-        if (page == PAGE_DATA1) {
+        if (page == PAGE_MAP) {
+            dc.setColor(Theme.fg(), Graphics.COLOR_TRANSPARENT);
+            dc.drawText(dc.getWidth() / 2, dc.getHeight() / 2, Graphics.FONT_SMALL, "Waiting for GPS",
+                        Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        } else if (page == PAGE_DATA1) {
             drawDataScreen(dc, 0);
         } else if (page == PAGE_DATA2) {
             drawDataScreen(dc, 1);

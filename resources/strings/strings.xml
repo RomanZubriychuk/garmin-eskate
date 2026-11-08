@@ -40,6 +40,7 @@
     <string id="FieldCalories">Calories</string>
     <string id="FieldAscent">Ascent</string>
     <string id="MenuBoardLink">Connect to Board</string>
+    <string id="MenuMapPage">Map</string>
     <string id="MenuBoardPage">Board Screen</string>
     <string id="MenuDiagPage">Diagnostics</string>
     <string id="SetS1Main">Screen 1: main field</string>

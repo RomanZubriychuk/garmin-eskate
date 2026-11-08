@@ -144,6 +144,9 @@
             <listEntry value="12">@Strings.FieldAscent</listEntry>
         </settingConfig>
     </setting>
+    <setting propertyKey="@Properties.showMap" title="@Strings.MenuMapPage">
+        <settingConfig type="boolean"/>
+    </setting>
     <setting propertyKey="@Properties.showBoardPage" title="@Strings.MenuBoardPage">
         <settingConfig type="boolean"/>
     </setting>

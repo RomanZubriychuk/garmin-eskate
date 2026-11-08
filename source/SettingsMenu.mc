@@ -63,6 +63,9 @@ class SettingsMenu {
         for (var s = 0; s < Config.SCREEN_COUNT; s++) {
             m.addItem(new WatchUi.MenuItem("Screen " + (s + 1).format("%d"), screenSummary(s), s, {}));
         }
+        if (WatchUi has :MapTrackView) {
+            m.addItem(new WatchUi.ToggleMenuItem(Rez.Strings.MenuMapPage, null, :map, Config.flag("showMap"), {}));
+        }
         _themeItem = new WatchUi.MenuItem(Rez.Strings.MenuBackground, themeName(Config.number("theme", Theme.AUTO)), :theme, {});
         m.addItem(_themeItem as WatchUi.MenuItem);
         push(m, :onScreensSelect);
@@ -70,6 +73,10 @@ class SettingsMenu {
 
     function onScreensSelect(item as WatchUi.MenuItem) as Void {
         var id = item.getId();
+        if (id == :map) {
+            Config.setFlag("showMap", (item as WatchUi.ToggleMenuItem).isEnabled());
+            return;
+        }
         if (id == :theme) {
             var m = new WatchUi.Menu2({ :title => Rez.Strings.MenuBackground });
             for (var t = 0; t < 3; t++) {

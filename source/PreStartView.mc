@@ -1,4 +1,3 @@
-import Toybox.Attention;
 import Toybox.Graphics;
 import Toybox.Lang;
 import Toybox.System;
@@ -29,13 +28,11 @@ class PreStartView extends ScrollPage {
     private var _hint as Array<WatchUi.Drawable>? = null;
     private var _name as String = "";
     private var _labels as Array<String> = [] as Array<String>;
-    private var _wasReady as Boolean;
 
     function initialize(ride as RideSession) {
         ScrollPage.initialize();
         _ride = ride;
         _maxFocus = ITEM_COUNT;
-        _wasReady = ride.gpsReady();
     }
 
     function onLayout(dc as Dc) as Void {
@@ -65,24 +62,6 @@ class PreStartView extends ScrollPage {
         return t < 0 ? 0.0 : t.toFloat();
     }
 
-    function onUpdate(dc as Dc) as Void {
-        checkGps();
-        ScrollPage.onUpdate(dc);
-    }
-
-    // Native activities buzz and beep once when GPS is ready to go.
-    private function checkGps() as Void {
-        var ready = _ride.gpsReady();
-        if (ready && !_wasReady) {
-            if (Attention has :vibrate) {
-                Attention.vibrate([new Attention.VibeProfile(100, 400)]);
-            }
-            if (Attention has :playTone) {
-                Attention.playTone(Attention.TONE_LOUD_BEEP);
-            }
-        }
-        _wasReady = ready;
-    }
 
     function drawContent(dc as Dc, w as Number, h as Number, y0 as Float) as Void {
         drawHead(dc, w, h, y0);
@@ -248,7 +227,11 @@ class PreStartDelegate extends WatchUi.BehaviorDelegate {
         var f = _view.focus;
         if (f == 0) {
             _ride.start();
-            fx.play(Feedback.START, method(:showDataPage));
+            // Like native: while the play overlay is still showing, the
+            // data page slides in from the right (own slide: the system one
+            // shows a black block for the not-yet-drawn page).
+            fx.play(Feedback.START, null);
+            getApp().ticker.after(1400, method(:showDataPage));
         } else {
             var m = new SettingsMenu();
             if (f - 1 == PreStartView.ITEM_SCREENS) {
@@ -262,10 +245,11 @@ class PreStartDelegate extends WatchUi.BehaviorDelegate {
         return true;
     }
 
-    // After the play overlay the first data page slides in from the right.
+    // The first data page, sliding in under the still-running play overlay.
     function showDataPage() as Void {
         var v = new ESkateView(_ride, getApp().board, 0, false);
-        WatchUi.switchToView(v, new ESkateDelegate(v, _ride), WatchUi.SLIDE_LEFT);
+        v.enterFrom(_view.snapshot());
+        WatchUi.switchToView(v, new ESkateDelegate(v, _ride), WatchUi.SLIDE_IMMEDIATE);
     }
 
     function onNextPage() as Boolean {
@@ -284,6 +268,7 @@ class PreStartDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function onBack() as Boolean {
+        if (getApp().fx.isActive()) { return true; }   // starting: page about to switch
         if (_view.focus > 0) {
             _view.scrollTo(0);
             return true;

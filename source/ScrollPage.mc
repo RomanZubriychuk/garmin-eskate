@@ -60,6 +60,20 @@ class ScrollPage extends WatchUi.View {
         _animating = false;
     }
 
+    // Off-screen copy of the page as it is now (for a slide to another view).
+    function snapshot() as Graphics.BufferedBitmapReference? {
+        if (!(Graphics has :createBufferedBitmap)) { return null; }
+        var ds = System.getDeviceSettings();
+        var ref = Graphics.createBufferedBitmap({ :width => ds.screenWidth, :height => ds.screenHeight });
+        var b = ref.get() as Graphics.BufferedBitmap?;
+        if (b == null) { return null; }
+        var bdc = b.getDc();
+        bdc.setColor(Graphics.COLOR_BLACK, Graphics.COLOR_BLACK);
+        bdc.clear();
+        drawContent(bdc, ds.screenWidth, ds.screenHeight, -_offset);
+        return ref;
+    }
+
     function offset() as Float {
         return _offset;
     }

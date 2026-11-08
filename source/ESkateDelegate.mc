@@ -89,7 +89,7 @@ class ESkateDelegate extends WatchUi.BehaviorDelegate {
 module PauseMenu {
     function show(ride as RideSession) as Void {
         var v = new PauseMenuView(ride);
-        WatchUi.pushView(v, new PauseMenuDelegate(ride, v), WatchUi.SLIDE_LEFT);
+        WatchUi.pushView(v, new PauseMenuDelegate(ride, v), WatchUi.SLIDE_IMMEDIATE);
     }
 }
 
@@ -249,7 +249,7 @@ class PauseMenuDelegate extends WatchUi.BehaviorDelegate {
     }
 
     function onBack() as Boolean {
-        WatchUi.popView(WatchUi.SLIDE_RIGHT);
+        WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
         return true;
     }
 
@@ -259,7 +259,7 @@ class PauseMenuDelegate extends WatchUi.BehaviorDelegate {
 
     private function pick(r as Number) as Void {
         if (r == PauseMenuView.RESUME) {
-            WatchUi.popView(WatchUi.SLIDE_RIGHT);
+            WatchUi.popView(WatchUi.SLIDE_IMMEDIATE);
             _ride.start();
             getApp().fx.play(Feedback.RESUME, null);
         } else if (r == PauseMenuView.SAVE) {
@@ -422,6 +422,7 @@ class FinishFlow {
         var v = new FinishView(label, BUSY_MS);
         _view = v;
         WatchUi.switchToView(v, new BusyDelegate(), WatchUi.SLIDE_IMMEDIATE);
+        getApp().ticker.fastFor(BUSY_MS);   // the ring fills up
         later(method(:finish), BUSY_MS);
     }
 

@@ -4,8 +4,10 @@ import Toybox.Timer;
 import Toybox.WatchUi;
 
 // The app's single UI timer (watches allow only a few timers per app).
-// Ticks once a second to refresh the pages, fast while an overlay animates
-// or a delayed step is pending, and runs those delayed steps.
+// Redraws once a second, or every tick while something moves (fastFor);
+// ticks fast without redrawing while a delayed step is pending, so static
+// overlays (start / stop) don't redraw the page 20 times a second, which
+// starved the watch and cut its tones.
 class Ticker {
     const SLOW_MS = 1000;
     const FAST_MS = 50;
@@ -14,6 +16,8 @@ class Ticker {
     private var _period as Number = 0;
     private var _jobs as Array<Array> = [] as Array<Array>;   // [dueMs, Method]
     private var _fastUntil as Number = 0;
+    private var _lastDraw as Number = 0;
+    var mapShown as Boolean = false;
 
     function initialize() {
         _timer = new Timer.Timer();
@@ -33,7 +37,8 @@ class Ticker {
 
     // Re-evaluates the tick rate (call after an overlay starts or stops).
     function update() as Void {
-        var fast = getApp().fx.isActive() || _jobs.size() > 0 || System.getTimer() < _fastUntil;
+        var now = System.getTimer();
+        var fast = getApp().fx.isActive() || _jobs.size() > 0 || now < _fastUntil + 100;
         var p = fast ? FAST_MS : SLOW_MS;
         if (p != _period) {
             _timer.stop();
@@ -61,7 +66,10 @@ class Ticker {
             for (var i = 0; i < due.size(); i++) { due[i].invoke(); }
         }
         update();
-        if (!handedOver) {
+        var moving = now < _fastUntil + 100;
+        var due = moving || (!mapShown && now - _lastDraw >= SLOW_MS - 30);
+        if (!handedOver && due) {
+            _lastDraw = now;
             WatchUi.requestUpdate();
         }
     }

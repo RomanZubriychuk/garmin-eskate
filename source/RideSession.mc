@@ -20,6 +20,8 @@ class RideSession {
     private var _gpsQuality as Number = Position.QUALITY_NOT_AVAILABLE;
     private var _lastAlertMs as Number = 0;
     private var _speedLimitKmh as Number = 0;    // cached setting, 0 = off
+    private var _gpsWasReady as Boolean = false;
+    private var _gpsAlertMs as Number = -100000;
 
     function initialize() {
         reloadSettings();
@@ -57,17 +59,15 @@ class RideSession {
             _battAtStart = null;
             _session = s;
         }
+        // The watch itself beeps and buzzes when the recording starts or
+        // stops; our own tone on top of it sounded doubled / cut off.
         (_session as ActivityRecording.Session).start();
-        vibe(1);
-        tone(Attention.TONE_START);
     }
 
     function pause() as Void {
         var s = _session;
         if (s != null && s.isRecording()) {
             s.stop();
-            vibe(2);
-            tone(Attention.TONE_STOP);
         }
     }
 
@@ -76,8 +76,8 @@ class RideSession {
         if (s != null) {
             if (s.isRecording()) { s.stop(); }
             s.save();
-            vibe(1);
             tone(Attention.TONE_SUCCESS);
+            vibe(1);
             clearFields();
         }
     }
@@ -120,6 +120,7 @@ class RideSession {
     // ---- GPS ----
     function onPosition(info as Position.Info) as Void {
         _gpsQuality = info.accuracy;
+        checkGpsReady();
         var spd = info.speed;
         _speed = (spd != null) ? spd.toFloat() : 0.0;
         checkSpeedAlert();
@@ -193,6 +194,21 @@ class RideSession {
     }
 
     // ---- helpers ----
+    // Like native: one buzz and beep when GPS becomes ready, before or during
+    // the ride (not again if it only flickers within a minute).
+    private function checkGpsReady() as Void {
+        var ready = gpsReady();
+        if (ready && !_gpsWasReady) {
+            var now = System.getTimer();
+            if (now - _gpsAlertMs > 60000) {
+                _gpsAlertMs = now;
+                tone(Attention.TONE_ALERT_HI);
+                vibe(1);
+            }
+        }
+        _gpsWasReady = ready;
+    }
+
     private function checkSpeedAlert() as Void {
         if (!overSpeedLimit()) {
             return;
@@ -217,8 +233,8 @@ class RideSession {
         }
         var pattern = [] as Array<Attention.VibeProfile>;
         for (var i = 0; i < count; i++) {
-            pattern.add(new Attention.VibeProfile(100, 250));
-            pattern.add(new Attention.VibeProfile(0, 150));
+            if (i > 0) { pattern.add(new Attention.VibeProfile(0, 150)); }
+            pattern.add(new Attention.VibeProfile(100, 300));
         }
         Attention.vibrate(pattern);
     }

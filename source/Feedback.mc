@@ -41,7 +41,7 @@ class Feedback {
     }
 
     private function durationOf(k as Number) as Number {
-        if (k == START) { return 1200; }
+        if (k == START) { return 1900; }
         if (k == RESUME) { return 800; }
         if (k == PAUSE) { return 1300; }
         return 900;
@@ -58,6 +58,7 @@ class Feedback {
                 done.invoke();
                 return true;
             }
+            WatchUi.requestUpdate();   // overlay gone
         }
         return false;
     }

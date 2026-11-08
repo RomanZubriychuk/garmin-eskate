@@ -10,6 +10,7 @@
     <property id="s2Left" type="number">7</property>
     <property id="s2Right" type="number">1</property>
     <property id="s2Bottom" type="number">5</property>
+    <property id="showMap" type="boolean">true</property>
     <property id="showBoardPage" type="boolean">true</property>
     <property id="showDiagnostics" type="boolean">true</property>
     <property id="theme" type="number">0</property>
