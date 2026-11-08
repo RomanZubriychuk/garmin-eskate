@@ -1,8 +1,5 @@
 <drawables>
     <!-- Garmin system icons (personality library), styled per watch -->
-    <bitmap id="ToastCheck" personality="system_icon_positive__check system_size__toast_icon"/>
-    <bitmap id="ToastSave" personality="system_icon_dark__save system_size__toast_icon"/>
-    <bitmap id="ToastDiscard" personality="system_icon_destructive__discard system_size__toast_icon"/>
     <bitmap id="MenuSave" personality="system_icon_dark__save system_size__menu_icon"/>
     <bitmap id="MenuDiscard" personality="system_icon_destructive__discard system_size__menu_icon"/>
     <!-- no system "play" icon exists, so resume uses our own in system menu size -->
