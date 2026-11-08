@@ -3,6 +3,13 @@
 A dedicated activity for riding an electric skateboard (built for the Exway Atlas Pro),
 so you don't have to record rides as "Inline Skating" or "E-Bike".
 
+<p>
+  <img src="docs/prestart.png" width="200" alt="Pre-start">
+  <img src="docs/data1.png" width="200" alt="Data screen 1">
+  <img src="docs/data2.png" width="200" alt="Data screen 2">
+  <img src="docs/pause.png" width="200" alt="Pause menu">
+</p>
+
 ## Features
 
 The Exway remote already shows speed and board battery, so the watch focuses on what
