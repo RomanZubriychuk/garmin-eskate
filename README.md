@@ -70,9 +70,10 @@ Change them either:
 
 ## Connecting to the Exway board — important
 
-No pairing in the watch's Sensors menu is needed (it only supports standard sensors).
-Turn on **Connect to Board** (hold UP → *Board*, or in Garmin Connect settings);
-the app then finds the board by name and connects by itself.
+The board link is **hidden in the current version** (`Config.BOARD = false` in
+`source/Config.mc`) until the protocol is decoded. With it set to `true`, turn on
+**Connect to Board** (hold UP → *Board*); the app then finds the board by name and
+connects by itself. No pairing in the watch's Sensors menu is needed.
 
 Exway does not publish its Bluetooth protocol, so **board data is not available yet**.
 The app can find a device by name (setting *Board Bluetooth name contains*, default `Exway`), connect, and

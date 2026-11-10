@@ -10,6 +10,10 @@ module Config {
     const SLOT_COUNT = 4;   // main, left, right, bottom
     const SLOT_NAMES = ["Main", "Left", "Right", "Bottom"];
 
+    // Board link (battery / voltage over Bluetooth) is hidden until the
+    // board protocol is decoded: it gives no data yet.
+    const BOARD = false;
+
     var _fields as Array<Number>? = null;
     var _flags as Dictionary<String, Boolean> = {} as Dictionary<String, Boolean>;
 
@@ -29,7 +33,9 @@ module Config {
             for (var s = 0; s < SCREEN_COUNT; s++) {
                 for (var i = 0; i < SLOT_COUNT; i++) {
                     var v = Application.Properties.getValue(key(s, i));
-                    f.add((v instanceof Number && v >= 0 && v < Fields.COUNT) ? v : Fields.NONE);
+                    var ok = v instanceof Number && v >= 0 && v < Fields.COUNT &&
+                        (BOARD || (v != Fields.BOARD_BATTERY && v != Fields.BOARD_VOLTAGE));
+                    f.add(ok ? v as Number : Fields.NONE);
                 }
             }
             _fields = f;
@@ -57,6 +63,11 @@ module Config {
             _flags.put(name, v);
         }
         return v;
+    }
+
+    // Board link switched on (and available in this build).
+    function board() as Boolean {
+        return BOARD && flag("boardEnabled");
     }
 
     function setFlag(name as String, on as Boolean) as Void {

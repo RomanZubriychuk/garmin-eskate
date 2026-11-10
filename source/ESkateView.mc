@@ -76,7 +76,7 @@ class ESkateView extends WatchUi.View {
         if (Config.screenUsed(0)) { p.add(PAGE_DATA1); }
         if (Config.screenUsed(1)) { p.add(PAGE_DATA2); }
         if (Config.flag("showMap") && (WatchUi has :MapTrackView)) { p.add(PAGE_MAP); }
-        if (Config.flag("boardEnabled")) {
+        if (Config.board()) {
             if (Config.flag("showBoardPage")) { p.add(PAGE_BOARD); }
             if (Config.flag("showDiagnostics")) { p.add(PAGE_DIAG); }
         }
@@ -235,10 +235,17 @@ class ESkateView extends WatchUi.View {
         if (split) { dc.drawLine(w / 2, h * ROW1, w / 2, h * ROW2); }
         dc.setPenWidth(1);
 
-        // top field: label above value
+        // top field: label above value; left of the Instinct sub-screen,
+        // which shows the time of day
+        var sub = Theme.subscreen();
         if (main != Fields.NONE) {
-            drawField(dc, main, w / 2, h * 0.15, h * 0.26, w * 0.60, h * 0.19);
+            if (sub != null) {
+                drawField(dc, main, sub.x / 2 + w * 0.03, h * 0.10, h * 0.24, sub.x * 0.85, h * 0.17);
+            } else {
+                drawField(dc, main, w / 2, h * 0.15, h * 0.26, w * 0.60, h * 0.19);
+            }
         }
+        Theme.drawSubClock(dc);
         // middle fields
         if (hasMid) {
             var labelY = h * (ROW1 + 0.06);
@@ -259,7 +266,9 @@ class ESkateView extends WatchUi.View {
     private function drawField(dc as Dc, id as Number, x as Numeric, labelY as Numeric, valueY as Numeric,
                                maxW as Numeric, maxH as Numeric) as Void {
         var v = Fields.value(id, _ride, _board);
-        text(dc, x, labelY, Graphics.FONT_XTINY, Theme.label(), Fields.LABELS[id]);
+        var label = Fields.LABELS[id];
+        if (dc.getTextWidthInPixels(label, Graphics.FONT_XTINY) > maxW) { label = Fields.SHORT[id]; }
+        text(dc, x, labelY, Graphics.FONT_XTINY, Theme.label(), label);
         var str = valueText(v);
         var font = fitFont(dc, str, maxW, maxH);
         text(dc, x, valueY, font, valueColor(id), str);

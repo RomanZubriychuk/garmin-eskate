@@ -25,7 +25,7 @@ class ESkateApp extends Application.AppBase {
 
     // Starts or stops the board link to match the "boardEnabled" setting.
     function applyBoardSetting() as Void {
-        var on = Config.flag("boardEnabled");
+        var on = Config.board();
         if (on && board.state != BoardLink.STATE_OFF && board.nameFilterChanged()) {
             board.stop();      // restart with the new board name
             board.start();

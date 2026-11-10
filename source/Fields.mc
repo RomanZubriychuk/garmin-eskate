@@ -29,6 +29,10 @@ module Fields {
     const LABELS = ["", "DISTANCE", "TIMER", "HEART RATE", "SPEED", "MAX SPEED", "AVG SPEED",
                     "BOARD BATT", "BOARD VOLT", "BATTERY", "TIME", "CALORIES", "ASCENT"];
 
+    // Shorter labels for narrow cells (small screens).
+    const SHORT = ["", "DIST", "TIMER", "HR", "SPEED", "MAX SPD", "AVG SPD",
+                   "BRD BATT", "BRD VOLT", "BATT", "TIME", "CAL", "ASCENT"];
+
     // Full names, used in the on-watch settings menu.
     function name(id as Number) as String {
         var ids = [

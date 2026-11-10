@@ -50,18 +50,22 @@ class RideSession {
                 :sport => Activity.SPORT_GENERIC,
                 :subSport => Activity.SUB_SPORT_GENERIC
             });
-            _batteryField = s.createField("board_battery", 0, FitContributor.DATA_TYPE_UINT8,
-                { :mesgType => FitContributor.MESG_TYPE_RECORD, :units => "%" });
-            _voltageField = s.createField("board_voltage", 1, FitContributor.DATA_TYPE_FLOAT,
-                { :mesgType => FitContributor.MESG_TYPE_RECORD, :units => "V" });
-            _battUsedField = s.createField("board_battery_used", 2, FitContributor.DATA_TYPE_UINT8,
-                { :mesgType => FitContributor.MESG_TYPE_SESSION, :units => "%" });
+            if (Config.BOARD) { createBoardFields(s); }
             _battAtStart = null;
             _session = s;
         }
         // The watch itself beeps and buzzes when the recording starts or
         // stops; our own tone on top of it sounded doubled / cut off.
         (_session as ActivityRecording.Session).start();
+    }
+
+    private function createBoardFields(s as ActivityRecording.Session) as Void {
+        _batteryField = s.createField("board_battery", 0, FitContributor.DATA_TYPE_UINT8,
+            { :mesgType => FitContributor.MESG_TYPE_RECORD, :units => "%" });
+        _voltageField = s.createField("board_voltage", 1, FitContributor.DATA_TYPE_FLOAT,
+            { :mesgType => FitContributor.MESG_TYPE_RECORD, :units => "V" });
+        _battUsedField = s.createField("board_battery_used", 2, FitContributor.DATA_TYPE_UINT8,
+            { :mesgType => FitContributor.MESG_TYPE_SESSION, :units => "%" });
     }
 
     function pause() as Void {

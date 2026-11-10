@@ -15,7 +15,7 @@ import Toybox.WatchUi;
 // Battery: scanning is the most expensive BLE state, so the board is
 // searched in 30 s windows with 90 s pauses instead of continuously.
 // Incoming packets don't trigger redraws; the view refreshes at 1 Hz.
-class BoardLink extends BluetoothLowEnergy.BleDelegate {
+class BoardLink {
     enum {
         STATE_OFF,
         STATE_STARTING,     // registering BLE profiles
@@ -51,17 +51,25 @@ class BoardLink extends BluetoothLowEnergy.BleDelegate {
     const SCAN_WINDOW_MS = 30000;
     const SCAN_PAUSE_MS = 90000;
 
+    // Created only when the link starts: watches without Bluetooth LE for
+    // apps (e.g. Venu Sq 2) would fail on a BleDelegate made at app start.
+    private var _ble as BoardBle? = null;
+
     function initialize() {
-        BleDelegate.initialize();
+    }
+
+    static function supported() as Boolean {
+        return Toybox has :BluetoothLowEnergy;
     }
 
     function start() as Void {
-        if (state != STATE_OFF) {
+        if (state != STATE_OFF || !supported()) {
             return;
         }
         _nameFilter = readNameFilter();
         state = STATE_STARTING;
-        BluetoothLowEnergy.setDelegate(self);
+        if (_ble == null) { _ble = new BoardBle(self); }
+        BluetoothLowEnergy.setDelegate(_ble as BoardBle);
         if (_profilesDone) {
             startScan();
         } else if (!_registering) {
@@ -83,6 +91,7 @@ class BoardLink extends BluetoothLowEnergy.BleDelegate {
 
     function stop() as Void {
         stopTimer();
+        if (_ble == null) { state = STATE_OFF; return; }
         BluetoothLowEnergy.setScanState(BluetoothLowEnergy.SCAN_STATE_OFF);
         var d = _device;
         if (d != null) {
@@ -244,5 +253,32 @@ class BoardLink extends BluetoothLowEnergy.BleDelegate {
             if (i % 2 == 1) { s += " "; }
         }
         return s;
+    }
+}
+
+// The BLE callbacks, forwarded to BoardLink.
+class BoardBle extends BluetoothLowEnergy.BleDelegate {
+    private var _link as BoardLink;
+
+    function initialize(link as BoardLink) {
+        BleDelegate.initialize();
+        _link = link;
+    }
+
+    function onProfileRegister(uuid as BluetoothLowEnergy.Uuid, status as BluetoothLowEnergy.Status) as Void {
+        _link.onProfileRegister(uuid, status);
+    }
+
+    function onScanResults(scanResults as BluetoothLowEnergy.Iterator) as Void {
+        _link.onScanResults(scanResults);
+    }
+
+    function onConnectedStateChanged(device as BluetoothLowEnergy.Device,
+                                     connState as BluetoothLowEnergy.ConnectionState) as Void {
+        _link.onConnectedStateChanged(device, connState);
+    }
+
+    function onCharacteristicChanged(ch as BluetoothLowEnergy.Characteristic, value as ByteArray) as Void {
+        _link.onCharacteristicChanged(ch, value);
     }
 }

@@ -39,7 +39,7 @@ class SettingsMenu {
         _boardItem = new WatchUi.MenuItem(Rez.Strings.MenuBoard, onOff(Config.flag("boardEnabled")), :board, {});
         m.addItem(_screensItem as WatchUi.MenuItem);
         m.addItem(_alertsItem as WatchUi.MenuItem);
-        m.addItem(_boardItem as WatchUi.MenuItem);
+        if (Config.BOARD) { m.addItem(_boardItem as WatchUi.MenuItem); }
         m.addItem(new WatchUi.MenuItem(Rez.Strings.MenuAbout, "E-Skate " + VERSION, :about, {}));
         push(m, :onMainSelect);
     }
@@ -99,10 +99,16 @@ class SettingsMenu {
         _editSlot = item.getId() as Number;
         _slotItem = item;
         var m = new WatchUi.Menu2({ :title => item.getLabel() });
+        var cur = Config.field(_editScreen, _editSlot);
+        var focus = 0;
+        var n = 0;
         for (var f = 0; f < Fields.COUNT; f++) {
+            if (!Config.BOARD && (f == Fields.BOARD_BATTERY || f == Fields.BOARD_VOLTAGE)) { continue; }
+            if (f == cur) { focus = n; }
             m.addItem(new WatchUi.MenuItem(Fields.name(f), null, f, {}));
+            n++;
         }
-        m.setFocus(Config.field(_editScreen, _editSlot));
+        m.setFocus(focus);
         pushChoice(m, :onFieldPicked);
     }
 

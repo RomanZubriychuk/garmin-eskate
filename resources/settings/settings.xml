@@ -2,12 +2,6 @@
     <setting propertyKey="@Properties.speedAlertKmh" title="@Strings.SettingSpeedAlert">
         <settingConfig type="numeric" min="0" max="80"/>
     </setting>
-    <setting propertyKey="@Properties.boardEnabled" title="@Strings.SettingBoardEnabled">
-        <settingConfig type="boolean"/>
-    </setting>
-    <setting propertyKey="@Properties.boardNameFilter" title="@Strings.SettingBoardName">
-        <settingConfig type="alphaNumeric"/>
-    </setting>
     <setting propertyKey="@Properties.s1Main" title="@Strings.SetS1Main">
         <settingConfig type="list">
             <listEntry value="0">@Strings.FieldNone</listEntry>
@@ -17,8 +11,6 @@
             <listEntry value="4">@Strings.FieldSpeed</listEntry>
             <listEntry value="5">@Strings.FieldMaxSpeed</listEntry>
             <listEntry value="6">@Strings.FieldAvgSpeed</listEntry>
-            <listEntry value="7">@Strings.FieldBoardBattery</listEntry>
-            <listEntry value="8">@Strings.FieldBoardVoltage</listEntry>
             <listEntry value="9">@Strings.FieldWatchBattery</listEntry>
             <listEntry value="10">@Strings.FieldClock</listEntry>
             <listEntry value="11">@Strings.FieldCalories</listEntry>
@@ -34,8 +26,6 @@
             <listEntry value="4">@Strings.FieldSpeed</listEntry>
             <listEntry value="5">@Strings.FieldMaxSpeed</listEntry>
             <listEntry value="6">@Strings.FieldAvgSpeed</listEntry>
-            <listEntry value="7">@Strings.FieldBoardBattery</listEntry>
-            <listEntry value="8">@Strings.FieldBoardVoltage</listEntry>
             <listEntry value="9">@Strings.FieldWatchBattery</listEntry>
             <listEntry value="10">@Strings.FieldClock</listEntry>
             <listEntry value="11">@Strings.FieldCalories</listEntry>
@@ -51,8 +41,6 @@
             <listEntry value="4">@Strings.FieldSpeed</listEntry>
             <listEntry value="5">@Strings.FieldMaxSpeed</listEntry>
             <listEntry value="6">@Strings.FieldAvgSpeed</listEntry>
-            <listEntry value="7">@Strings.FieldBoardBattery</listEntry>
-            <listEntry value="8">@Strings.FieldBoardVoltage</listEntry>
             <listEntry value="9">@Strings.FieldWatchBattery</listEntry>
             <listEntry value="10">@Strings.FieldClock</listEntry>
             <listEntry value="11">@Strings.FieldCalories</listEntry>
@@ -68,8 +56,6 @@
             <listEntry value="4">@Strings.FieldSpeed</listEntry>
             <listEntry value="5">@Strings.FieldMaxSpeed</listEntry>
             <listEntry value="6">@Strings.FieldAvgSpeed</listEntry>
-            <listEntry value="7">@Strings.FieldBoardBattery</listEntry>
-            <listEntry value="8">@Strings.FieldBoardVoltage</listEntry>
             <listEntry value="9">@Strings.FieldWatchBattery</listEntry>
             <listEntry value="10">@Strings.FieldClock</listEntry>
             <listEntry value="11">@Strings.FieldCalories</listEntry>
@@ -85,8 +71,6 @@
             <listEntry value="4">@Strings.FieldSpeed</listEntry>
             <listEntry value="5">@Strings.FieldMaxSpeed</listEntry>
             <listEntry value="6">@Strings.FieldAvgSpeed</listEntry>
-            <listEntry value="7">@Strings.FieldBoardBattery</listEntry>
-            <listEntry value="8">@Strings.FieldBoardVoltage</listEntry>
             <listEntry value="9">@Strings.FieldWatchBattery</listEntry>
             <listEntry value="10">@Strings.FieldClock</listEntry>
             <listEntry value="11">@Strings.FieldCalories</listEntry>
@@ -102,8 +86,6 @@
             <listEntry value="4">@Strings.FieldSpeed</listEntry>
             <listEntry value="5">@Strings.FieldMaxSpeed</listEntry>
             <listEntry value="6">@Strings.FieldAvgSpeed</listEntry>
-            <listEntry value="7">@Strings.FieldBoardBattery</listEntry>
-            <listEntry value="8">@Strings.FieldBoardVoltage</listEntry>
             <listEntry value="9">@Strings.FieldWatchBattery</listEntry>
             <listEntry value="10">@Strings.FieldClock</listEntry>
             <listEntry value="11">@Strings.FieldCalories</listEntry>
@@ -119,8 +101,6 @@
             <listEntry value="4">@Strings.FieldSpeed</listEntry>
             <listEntry value="5">@Strings.FieldMaxSpeed</listEntry>
             <listEntry value="6">@Strings.FieldAvgSpeed</listEntry>
-            <listEntry value="7">@Strings.FieldBoardBattery</listEntry>
-            <listEntry value="8">@Strings.FieldBoardVoltage</listEntry>
             <listEntry value="9">@Strings.FieldWatchBattery</listEntry>
             <listEntry value="10">@Strings.FieldClock</listEntry>
             <listEntry value="11">@Strings.FieldCalories</listEntry>
@@ -136,8 +116,6 @@
             <listEntry value="4">@Strings.FieldSpeed</listEntry>
             <listEntry value="5">@Strings.FieldMaxSpeed</listEntry>
             <listEntry value="6">@Strings.FieldAvgSpeed</listEntry>
-            <listEntry value="7">@Strings.FieldBoardBattery</listEntry>
-            <listEntry value="8">@Strings.FieldBoardVoltage</listEntry>
             <listEntry value="9">@Strings.FieldWatchBattery</listEntry>
             <listEntry value="10">@Strings.FieldClock</listEntry>
             <listEntry value="11">@Strings.FieldCalories</listEntry>
@@ -145,12 +123,6 @@
         </settingConfig>
     </setting>
     <setting propertyKey="@Properties.showMap" title="@Strings.MenuMapPage">
-        <settingConfig type="boolean"/>
-    </setting>
-    <setting propertyKey="@Properties.showBoardPage" title="@Strings.MenuBoardPage">
-        <settingConfig type="boolean"/>
-    </setting>
-    <setting propertyKey="@Properties.showDiagnostics" title="@Strings.MenuDiagPage">
         <settingConfig type="boolean"/>
     </setting>
     <setting propertyKey="@Properties.theme" title="@Strings.MenuBackground">

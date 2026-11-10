@@ -7,7 +7,7 @@
     <property id="s1Right" type="number">3</property>
     <property id="s1Bottom" type="number">4</property>
     <property id="s2Main" type="number">4</property>
-    <property id="s2Left" type="number">7</property>
+    <property id="s2Left" type="number">6</property>
     <property id="s2Right" type="number">1</property>
     <property id="s2Bottom" type="number">5</property>
     <property id="showMap" type="boolean">true</property>

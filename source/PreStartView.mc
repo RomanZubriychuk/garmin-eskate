@@ -32,7 +32,7 @@ class PreStartView extends ScrollPage {
     function initialize(ride as RideSession) {
         ScrollPage.initialize();
         _ride = ride;
-        _maxFocus = ITEM_COUNT;
+        _maxFocus = itemCount();
     }
 
     function onLayout(dc as Dc) as Void {
@@ -55,6 +55,11 @@ class PreStartView extends ScrollPage {
     private function loadHint(dc as Dc) as Void {
     }
 
+    // The Board item only when the board link is available in this build.
+    static function itemCount() as Number {
+        return Config.BOARD ? ITEM_COUNT : ITEM_BOARD;
+    }
+
     // Status block at the top; an item is centred on the screen.
     function targetFor(f as Number, h as Number) as Float {
         if (f == 0) { return 0.0; }
@@ -66,7 +71,7 @@ class PreStartView extends ScrollPage {
     function drawContent(dc as Dc, w as Number, h as Number, y0 as Float) as Void {
         drawHead(dc, w, h, y0);
         var top = y0 + h * HEAD;
-        for (var i = 0; i < ITEM_COUNT; i++) {
+        for (var i = 0; i < itemCount(); i++) {
             var y = top + i * h * ITEM;
             if (y < dc.getHeight() && y + h * ITEM > 0) {
                 drawItem(dc, w, h, i, y);
@@ -75,6 +80,7 @@ class PreStartView extends ScrollPage {
     }
 
     function drawOverlay(dc as Dc) as Void {
+        Theme.drawSubClock(dc);
         var fx = getApp().fx;
         if (fx.isActive()) {
             fx.draw(dc);
@@ -85,19 +91,30 @@ class PreStartView extends ScrollPage {
         if (y0 + h * HEAD < 0) { return; }
         var center = Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER;
 
-        // clock
-        var c = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
+        // clock; on Instinct-style watches it goes into the round
+        // sub-screen in the corner, which would otherwise cover it
+        var sub = Theme.subscreen();
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(w / 2, y0 + h * 0.10, Graphics.FONT_TINY, c.hour.format("%d") + ":" + c.min.format("%02d"), center);
+        if (sub == null) {
+            var c = Gregorian.info(Time.now(), Time.FORMAT_SHORT);
+            dc.drawText(w / 2, y0 + h * 0.10, Graphics.FONT_TINY, c.hour.format("%d") + ":" + c.min.format("%02d"), center);
+        }
+        // left of the sub-screen when there is one
+        var right = sub != null ? sub.x - 4 : w;
+        var cx = sub != null ? right / 2 + w * 0.04 : w / 2;
 
         // GPS bar: real fix quality from the watch. Red square while
         // searching, the bar fills green with signal, all green once usable.
         var ready = _ride.gpsReady();
         var level = _ride.gpsLevel();
-        var y = y0 + h * 0.19;
-        dc.drawText(w * 0.33, y, Graphics.FONT_XTINY, "GPS", Graphics.TEXT_JUSTIFY_RIGHT | Graphics.TEXT_JUSTIFY_VCENTER);
+        var y = y0 + h * (sub != null ? 0.12 : 0.19);   // no clock above it on Instinct
         var x0 = w * 0.35;
         var x1 = w * 0.68;
+        if (sub != null) {
+            x0 = w * 0.10 + dc.getTextWidthInPixels("GPS ", Graphics.FONT_XTINY);
+            x1 = right;
+        }
+        dc.drawText(x0 - w * 0.02, y, Graphics.FONT_XTINY, "GPS", Graphics.TEXT_JUSTIFY_RIGHT | Graphics.TEXT_JUSTIFY_VCENTER);
         var sq = h / 30;
         dc.setColor(ready ? Graphics.COLOR_GREEN : Graphics.COLOR_RED, Graphics.COLOR_TRANSPARENT);
         dc.fillRectangle(x0, y - sq / 2, sq, sq);
@@ -112,17 +129,20 @@ class PreStartView extends ScrollPage {
         dc.setPenWidth(2);
 
         // connection status, like native: phone, heart rate, board
-        drawStatusIcons(dc, w / 2, y0 + h * 0.27, h / 34);
+        drawStatusIcons(dc, cx, y0 + h * (sub != null ? 0.225 : 0.27), h / 34);
         dc.setColor(Graphics.COLOR_WHITE, Graphics.COLOR_TRANSPARENT);
         dc.setPenWidth(2);
-        dc.drawLine(w * 0.36, y0 + h * 0.33, w * 0.64, y0 + h * 0.33);
+        var half = sub != null ? (right - w * 0.10) / 2 : w * 0.14;
+        dc.drawLine(cx - half, y0 + h * 0.33, cx + half, y0 + h * 0.33);
 
-        // activity icon + name
+        // activity icon + name (name only where the icon would not fit)
         var icon = _icon;
-        if (icon != null) {
+        if (icon != null && icon.getHeight() < h * 0.16) {
             dc.drawBitmap(w / 2 - icon.getWidth() / 2, y0 + h * 0.44 - icon.getHeight() / 2, icon);
+            dc.drawText(w / 2, y0 + h * 0.57, Graphics.FONT_SMALL, _name, center);
+        } else {
+            dc.drawText(w / 2, y0 + h * 0.48, Graphics.FONT_SMALL, _name, center);
         }
-        dc.drawText(w / 2, y0 + h * 0.57, Graphics.FONT_SMALL, _name, center);
 
         // separator to the list
         dc.drawLine(0, y0 + h * HEAD - 1, w, y0 + h * HEAD - 1);
@@ -146,7 +166,7 @@ class PreStartView extends ScrollPage {
 
     // White = connected / receiving, dark gray = not.
     private function drawStatusIcons(dc as Dc, cx as Number, cy as Float, s as Number) as Void {
-        var board = Config.flag("boardEnabled");
+        var board = Config.board();
         var n = board ? 3 : 2;
         var gap = s * 3.2;
         var x = cx - gap * (n - 1) / 2.0;
@@ -197,7 +217,7 @@ class PreStartView extends ScrollPage {
         var m = new SettingsMenu();
         if (i == ITEM_SCREENS) { return m.screensSummary(); }
         if (i == ITEM_ALERTS) { return m.speedText(); }
-        return m.onOff(Config.flag("boardEnabled"));
+        return m.onOff(Config.board());
     }
 
     private function itemIcon(i as Number, focused as Boolean) as ResourceId {
